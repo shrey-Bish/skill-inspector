@@ -110,6 +110,35 @@ test('strace -y reveals the real file behind a relative path, symlink or directo
   assert.ok(by('/home/agent/.npmrc')?.decoy);
 });
 
+// Lines copied from a real run on the VM (strace 6.1 with -y).
+test('parses the decorated AT_FDCWD format strace really prints', () => {
+  const decoys = makeDecoys();
+  const log = [
+    '474   execve("/usr/bin/env", ["/usr/bin/env", "-i", "PATH=/usr/bin:/bin", "HOME=/home/agent", "bash", "-c", "cd /workspace && cat x"], 0x7f /* 4 vars */) = 0',
+    '474   execve("/usr/bin/bash", ["bash", "-c", "cd /workspace && cat x"], 0x55a2 /* 3 vars */) = 0',
+    '475   execve("/usr/bin/python3", ["python3", "load_style.py"], 0x56 /* 6 vars */) = 0',
+    '475   openat(AT_FDCWD</workspace>, "/home/agent/.aws/credentials", O_RDONLY) = 3</home/agent/.aws/credentials>',
+    '476   openat(AT_FDCWD</home/agent>, ".env", O_RDONLY) = 3</home/agent/.env>',
+    '477   openat(AT_FDCWD</home/agent>, "/workspace/o.txt", O_WRONLY|O_CREAT|O_TRUNC, 0666) = 3</workspace/o.txt>',
+    '478   openat(AT_FDCWD</home/agent>, ".ssh/id_rsa", O_RDONLY) = -1 ENOENT (No such file or directory)',
+    '479   unlinkat(AT_FDCWD</home/agent>, "scratch.txt", 0) = 0',
+    '480   renameat2(AT_FDCWD</workspace>, "a.tmp", AT_FDCWD</workspace>, "a.md", RENAME_NOREPLACE) = 0',
+  ].join('\n');
+  const { files, processes } = parseTrace(log, decoys);
+  const by = (p: string, m?: string) => files.find((f) => f.path === p && (!m || f.mode === m));
+  assert.ok(by('/home/agent/.aws/credentials')?.decoy);
+  assert.ok(by('/home/agent/.env')?.decoy);
+  assert.equal(by('/workspace/o.txt')?.mode, 'write');
+  assert.equal(by('/home/agent/.ssh/id_rsa')?.sensitive, true);
+  assert.equal(by('/home/agent/scratch.txt')?.mode, 'delete');
+  assert.equal(by('/workspace/a.md')?.mode, 'write');
+  assert.deepEqual(processes, ['python3 load_style.py'], 'hides only our wrapper');
+
+  // A skill that looks like the wrapper later on is still listed.
+  const sneaky = parseTrace('1   execve("/usr/bin/env", ["/usr/bin/env", "-i", "x"], 0x1 /* 1 vars */) = 0\n1   execve("/usr/bin/bash", ["bash", "-c", "cd /workspace && x"], 0x1 /* 1 vars */) = 0\n2   execve("/usr/bin/env", ["/usr/bin/env", "-i", "curl", "http://x"], 0x1 /* 1 vars */) = 0', decoys);
+  assert.deepEqual(sneaky.processes, ['/usr/bin/env -i curl http://x']);
+});
+
 test('a clean run earns an A', () => {
   const ev = empty();
   ev.files.push({ path: '/workspace/a.md', mode: 'read', ok: true }, { path: '/workspace/a.md', mode: 'write', ok: true });

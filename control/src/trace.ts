@@ -17,12 +17,14 @@ export function isExpectedPath(path: string, skillDir: string): boolean {
   return path === '/workspace' || path.startsWith('/workspace/') || path === skillDir || path.startsWith(`${skillDir}/`) || path.startsWith('/tmp/');
 }
 
-// With strace -y, a successful open also prints the real file: `= 3</home/agent/.env>`.
-// That beats the argument, which can be relative, reached through a symlink, or `cd`-dependent.
-const OPEN = /\b(?:openat\((?:AT_FDCWD|-?\d+(?:<([^>]*)>)?), |open\()"((?:[^"\\]|\\.)*)", ([A-Z_|]+)(?:, \d+)?\)\s*= (-?\d+)(?:<([^>]*)>)?/;
+// strace -y decorates descriptors with the real path: `openat(AT_FDCWD</workspace>, "x", ...) = 3</home/agent/.env>`.
+// The returned path is the truth. A relative argument, a symlink or a `cd` can't hide it.
+const Q = '"((?:[^"\\\\]|\\\\.)*)"';
+const FD = '(?:AT_FDCWD|-?\\d+)(?:<([^>]*)>)?';
+const OPEN = new RegExp(`\\b(?:openat\\(${FD}, |open\\()${Q}, ([A-Z_|]+)(?:, \\d+)?\\)\\s*= (-?\\d+)(?:<([^>]*)>)?`);
 const EXEC = /\bexecve\("((?:[^"\\]|\\.)*)", \[(.*?)\](?:\.\.\.)?, .*\)\s*= (-?\d+)/;
-const UNLINK = /\bunlink(?:at)?\((?:AT_FDCWD, )?"((?:[^"\\]|\\.)*)"(?:, \d+)?\)\s*= (-?\d+)/;
-const RENAME = /\brename(?:at2?)?\((?:AT_FDCWD, )?"(?:[^"\\]|\\.)*", (?:AT_FDCWD, )?"((?:[^"\\]|\\.)*)"(?:, \w+)?\)\s*= (-?\d+)/;
+const UNLINK = new RegExp(`\\bunlink(?:at)?\\((?:${FD}, )?${Q}(?:, \\w+)?\\)\\s*= (-?\\d+)`);
+const RENAME = new RegExp(`\\brename(?:at2?)?\\((?:${FD}, )?${Q}, (?:${FD}, )?${Q}(?:, \\w+)?\\)\\s*= (-?\\d+)`);
 
 /** strace splits a call in two when another process interrupts it. Put them back together. */
 function joinSplitLines(log: string): string[] {
@@ -74,6 +76,7 @@ export function parseTrace(log: string, decoys: Decoy[]): ParsedTrace {
 
   const files = new Map<string, FileEvent>();
   const processes: string[] = [];
+  let execCount = 0;
   const note = (e: FileEvent) => {
     const key = `${e.mode}:${e.path}`;
     const existing = files.get(key);
@@ -101,16 +104,22 @@ export function parseTrace(log: string, decoys: Decoy[]): ParsedTrace {
     if (exec) {
       if (Number(exec[3]) < 0) continue;
       const argv = [...exec[2].matchAll(/"((?:[^"\\]|\\.)*)"/g)].map((m) => unescape(m[1]));
-      processes.push(argv.join(' ') || unescape(exec[1]));
+      const shown = argv.join(' ') || unescape(exec[1]);
+      execCount++;
+      // Our own wrapper is always the first two programs. Matching by position means a
+      // skill can't hide a program by making it look like the wrapper.
+      if (execCount === 1 && shown.startsWith('/usr/bin/env -i ')) continue;
+      if (execCount === 2 && shown.startsWith('bash -c cd /workspace && ')) continue;
+      processes.push(shown);
       continue;
     }
     const del = line.match(UNLINK);
     if (del) {
-      if (Number(del[2]) >= 0) note({ path: normalize(unescape(del[1])), mode: 'delete', ok: true });
+      if (Number(del[3]) >= 0) note({ path: normalize(unescape(del[2]), del[1] || '/workspace'), mode: 'delete', ok: true });
       continue;
     }
     const ren = line.match(RENAME);
-    if (ren && Number(ren[2]) >= 0) note({ path: normalize(unescape(ren[1])), mode: 'write', ok: true });
+    if (ren && Number(ren[5]) >= 0) note({ path: normalize(unescape(ren[4]), ren[3] || '/workspace'), mode: 'write', ok: true });
   }
   return { files: [...files.values()], processes };
 }

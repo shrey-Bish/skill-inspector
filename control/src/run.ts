@@ -89,6 +89,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
   let sandbox: Sandbox | null = null;
   let destroyed = false;
   let task = '';
+  let kernel: string | null = null;
 
   const seenFiles = new Set<string>();
   const seenProcs = new Set<string>();
@@ -166,6 +167,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     sandbox = new Sandbox(opts);
     await sandbox.open(opts);
     const sb = sandbox;
+    kernel = sb.kernel;
     say('safe', `Test space ready: its own kernel, ${LIMITS.memory} of memory, no real internet, decoy keys in place`, 'setup', { kernel: sb.kernel });
 
     // 2. Load into the agent.
@@ -222,7 +224,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       containment,
       task,
       limits: { seconds: LIMITS.seconds, memory: LIMITS.memory, cpus: LIMITS.cpus },
-      sandbox: { kernel: null, destroyed, ms: Date.now() - started },
+      sandbox: { kernel, destroyed, ms: Date.now() - started },
       details: {
         files: evidence.files,
         network: evidence.network,

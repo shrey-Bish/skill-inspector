@@ -63,7 +63,7 @@ const sleep = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 export async function chat(opts: ChatOptions): Promise<ChatResult> {
   const key = process.env.VULTR_INFERENCE_API_KEY;
   const base = process.env.VULTR_INFERENCE_BASE_URL ?? 'https://api.vultrinference.com/v1';
-  const model = opts.model ?? process.env.VULTR_INFERENCE_MODEL ?? 'glm-5.3';
+  const model = opts.model ?? process.env.VULTR_INFERENCE_MODEL ?? 'qwen3.8-flash-next';
   if (!key) throw new LlmError('VULTR_INFERENCE_API_KEY is not set');
   if (opts.budget?.exhausted) throw new LlmError('Token budget used up for this check');
 
@@ -71,7 +71,7 @@ export async function chat(opts: ChatOptions): Promise<ChatResult> {
     model,
     messages: opts.messages,
     ...(opts.tools ? { tools: opts.tools, tool_choice: 'auto' } : {}),
-    max_tokens: opts.maxTokens ?? 1500,
+    max_tokens: opts.maxTokens ?? 4000,
     temperature: opts.temperature ?? 0.2,
     ...(opts.json ? { response_format: { type: 'json_object' } } : {}),
   });
