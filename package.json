@@ -1,0 +1,12 @@
+{
+  "name": "skill-inspector",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "test": "node --test control/test/*.test.ts",
+    "start": "node control/src/server.ts"
+  }
+}
