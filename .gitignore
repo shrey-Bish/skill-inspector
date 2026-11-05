@@ -9,3 +9,8 @@ dist/
 *.key
 data/
 .DS_Store
+
+# Planning docs stay local
+PROJECT_SPEC.md
+DESIGN_BRIEF.md
+video/
