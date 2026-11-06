@@ -205,10 +205,10 @@ export function containmentFrom(ev: Evidence): Containment {
   const blocked = `${caught.method ? `${caught.method} ` : ''}${caught.tls ? 'https' : 'http'}://${caught.host}${caught.path ?? ''}`;
   const plain =
     caught.matches.length > 0
-      ? 'This skill tried to send a key to an outside address. We stopped it.'
+      ? 'This skill tried to send a secret key to another website. We stopped it.'
       : carriesData(caught)
-        ? 'This skill tried to send data to an outside address. We stopped it.'
-        : 'This skill tried to reach an outside address. We stopped it.';
+        ? 'This skill tried to send information to another website. We stopped it.'
+        : 'This skill tried to contact another website. We stopped it.';
   return { happened: true, plain, blocked, caught };
 }
 
@@ -222,7 +222,8 @@ function claims(description: string): string[] {
 }
 
 function nameFiles(files: { path: string }[]): string {
-  const names = files.map((f) => f.path.replace(/^\/workspace\//, ''));
+  // Tools like sed leave short-lived scratch files that mean nothing to a reader.
+  const names = files.map((f) => f.path.replace(/^\/workspace\//, '')).filter((n) => !/(^|\/)sed[A-Za-z0-9]{6}$/.test(n));
   const shown = names.slice(0, 3).join(', ');
   return names.length > 3 ? `${shown} and ${names.length - 3} more` : shown;
 }

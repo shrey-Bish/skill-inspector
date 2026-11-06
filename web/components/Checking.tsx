@@ -13,7 +13,7 @@ const STEPS: { key: NonNullable<FeedEvent['step']>; label: string }[] = [
 ];
 
 // Setup chatter and raw commands stay behind "Show every step".
-const QUIET = /^(Fetching the skill|Drafting an ordinary|Loaded |Agent got the task|Grading from|Agent ran: )/;
+const QUIET = /^(Fetching the skill|Drafting an ordinary|Gave |The AI helper got the task|Grading from|Agent ran: )/;
 
 const LINE_GAP = 1200;
 const FAST_GAP = 450; // A long backlog still has to catch up with the run.
@@ -171,31 +171,38 @@ function useRun(id: string, onDone: () => void, review: boolean) {
   return { check, lines, beat, caught, panel, awaitProof, continueRun, taken, task, files, confirm, finished, answer };
 }
 
-function Steps({ lines, finished }: { lines: FeedEvent[]; finished: boolean }) {
-  const reached = lines.reduce((max, l) => Math.max(max, STEPS.findIndex((s) => s.key === l.step)), 0);
+// Fixed, so the picture never stretches as the list fills. Taller screens get a taller stage.
+const STAGE_HEIGHT = 'lg:h-[clamp(400px,calc(100dvh-290px),600px)]';
+
+function Progress({ step }: { step: number }) {
   return (
-    <ol className="flex flex-wrap gap-x-7 gap-y-2">
-      {STEPS.map((step, i) => {
-        const done = i < reached || finished;
-        const active = i === reached && !finished;
-        return (
-          <li key={step.key} className={`flex items-center gap-2 text-[15px] ${active ? 'font-semibold' : done ? 'text-ink' : 'text-faint'}`} aria-current={active ? 'step' : undefined}>
-            {done && <span className="si-line flex size-[22px] flex-none items-center justify-center rounded-full bg-green text-xs font-bold text-white">✓</span>}
-            {active && <span className="box-border flex size-[22px] flex-none items-center justify-center rounded-full border-2 border-accent"><span className="size-2 rounded-full bg-accent" /></span>}
-            {!done && !active && <span className="box-border size-[22px] flex-none rounded-full border-2 border-[#c5c9ce]" />}
-            <span>{step.label}</span>
-          </li>
-        );
-      })}
-    </ol>
+    <div className="flex items-center gap-3">
+      <div className="flex w-40 gap-1.5" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={step}>
+        {STEPS.map((s, i) => <span key={s.key} className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${i < step ? 'bg-accent' : 'bg-[#dcded9]'}`} />)}
+      </div>
+      <span className="text-sm text-soft">Step {Math.min(step, STEPS.length)} of {STEPS.length}</span>
+    </div>
   );
+}
+
+/** One big sentence saying what is happening right now. */
+function headline(beat: Beat, stepKey: string | undefined, confirm: string | null, finished: boolean): { text: string; tone: string } {
+  if (confirm) return { text: 'We need your decision', tone: 'text-[#7a4a00]' };
+  if (beat === 'destroyed' || finished) return { text: 'All done. The test space is destroyed.', tone: 'text-ink' };
+  if (beat === 'reach') return { text: 'Uh oh! The skill is trying to send something out', tone: 'text-red-text' };
+  if (beat === 'stop' || beat === 'proof') return { text: 'We stopped it. Nothing got out.', tone: 'text-red-text' };
+  if (beat === 'clean') return { text: 'Good news: nothing tried to get out', tone: 'text-[#17683a]' };
+  if (stepKey === 'grade') return { text: 'Writing your report…', tone: 'text-ink' };
+  if (stepKey === 'task') return { text: 'The AI helper is trying the skill…', tone: 'text-ink' };
+  if (stepKey === 'load') return { text: 'Handing the skill to an AI helper…', tone: 'text-ink' };
+  return { text: 'Building a sealed test space…', tone: 'text-ink' };
 }
 
 const DOT: Record<string, string> = { info: 'bg-[#b9bec4]', safe: 'bg-green', caution: 'bg-amber', stop: 'bg-red' };
 const COLOR: Record<string, string> = { info: 'text-muted', safe: 'text-muted', caution: 'text-ink', stop: 'text-red-text' };
 
-function Feed({ lines, confirm, answer, start, finished, awaitProof, plain }: {
-  lines: FeedEvent[]; confirm: string | null; answer: (allow: boolean) => void; start: number; finished: boolean; awaitProof: boolean; plain: boolean;
+function Feed({ lines, confirm, answer, start, finished, plain }: {
+  lines: FeedEvent[]; confirm: string | null; answer: (allow: boolean) => void; start: number; finished: boolean; plain: boolean;
 }) {
   const box = useRef<HTMLDivElement>(null);
   const [everything, setEverything] = useState(false);
@@ -203,48 +210,42 @@ function Feed({ lines, confirm, answer, start, finished, awaitProof, plain }: {
     if (box.current) box.current.scrollTop = box.current.scrollHeight;
   }, [lines.length, confirm, finished, everything]);
   const firstDecoy = lines.findIndex((l) => dataOf(l).decoyNote);
+  const shown = lines.filter((l) => !/^Agent ran: (read|write) /.test(l.text) && (everything || !QUIET.test(l.text)));
   return (
-    <div className="box-border flex min-w-0 flex-col gap-1.5 rounded-[20px] border border-line bg-white px-6 py-5">
-      <div className="flex items-center justify-between gap-3 pb-1.5">
-        <div className="text-base font-semibold">What&apos;s happening</div>
-        <button onClick={() => setEverything((v) => !v)} aria-pressed={everything} className="cursor-pointer text-[13.5px] text-muted underline-offset-2 hover:text-ink hover:underline">
+    <div className={`box-border flex h-[340px] min-w-0 flex-col gap-1 rounded-[20px] border border-line bg-white px-5 py-4 ${STAGE_HEIGHT}`}>
+      <div className="flex flex-none items-center justify-between gap-3 pb-1">
+        <div className="text-base font-semibold">What it did so far</div>
+        <button onClick={() => setEverything((v) => !v)} aria-pressed={everything} className="cursor-pointer text-[13.5px] font-medium text-accent underline-offset-2 hover:underline">
           {everything ? 'Show less' : 'Show every step'}
         </button>
       </div>
-      <div ref={box} aria-live="polite" className="flex max-h-[440px] flex-col overflow-y-auto">
-        {lines.map((l, i) => {
-          if (/^Agent ran: (read|write) /.test(l.text)) return null;
-          if (!everything && QUIET.test(l.text)) return null;
+      <div ref={box} aria-live="polite" className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {shown.length === 0 && !confirm && <p className="py-2 text-[15px] text-faint">Nothing yet. Things will show up here as they happen.</p>}
+        {shown.map((l) => {
           const command = /^Agent ran: ([\s\S]+)$/.exec(l.text)?.[1];
           const stopped = /^We stopped it/.test(l.text);
           return (
-            <div key={l.seq} className={`si-line grid gap-3 py-[7px] text-[15px] leading-[22px] ${everything ? 'grid-cols-[36px_8px_minmax(0,1fr)]' : 'grid-cols-[8px_minmax(0,1fr)]'} ${COLOR[l.level]}`}>
+            <div key={l.seq} className={`si-line grid gap-3 py-[6px] text-[15px] leading-[22px] ${everything ? 'grid-cols-[36px_8px_minmax(0,1fr)]' : 'grid-cols-[8px_minmax(0,1fr)]'} ${COLOR[l.level]}`}>
               {everything && <span className="font-mono text-[12.5px] text-faint">{clock(new Date(l.at).getTime() - start)}</span>}
               <span className={`mt-[7px] size-2 ${l.level === 'caution' ? 'rotate-45' : l.level === 'stop' ? 'rounded-[1px]' : 'rounded-full'} ${DOT[l.level]}`} />
-              <span className={`si-line-text flex flex-col gap-2 [overflow-wrap:anywhere] ${stopped ? 'font-semibold' : ''}`}>
+              <span className={`si-line-text flex flex-col gap-1.5 [overflow-wrap:anywhere] ${stopped ? 'font-semibold' : ''}`}>
                 {command
-                  ? <><span>Agent ran a command</span>{!plain && <code className="rounded-md bg-[#f4f5f2] px-2 py-1 font-mono text-[12px] leading-[18px] text-body [word-break:break-all]">{command}</code>}</>
+                  ? <><span>The AI helper ran a command</span>{!plain && <code className="rounded-md bg-[#f4f5f2] px-2 py-1 font-mono text-[12px] leading-[18px] text-body [word-break:break-all]">{command}</code>}</>
                   : l.text}
-                {i === firstDecoy && <span className="rounded-lg bg-amber-tint px-2.5 py-[7px] text-[13.5px] font-normal leading-[19px] text-[#5b3b00]">This key is fake. We planted it, and it unlocks nothing.</span>}
+                {lines.indexOf(l) === firstDecoy && <span className="rounded-lg bg-amber-tint px-2.5 py-1.5 text-[13.5px] font-normal leading-[19px] text-[#5b3b00]">Keys work like passwords. This one is fake bait we planted.</span>}
               </span>
             </div>
           );
         })}
         {confirm && (
-          <div data-si-pause className="si-slide mt-2 flex flex-col gap-3 rounded-2xl border-[1.5px] border-[#d9a441] bg-[#fffbf3] p-[18px] shadow-[0_8px_22px_rgba(176,110,0,0.10)]">
-            <div className="text-base font-semibold leading-[23px]">The agent wants to run something that can&apos;t be undone.</div>
-            <div className="rounded-lg bg-[#f4f5f2] px-3 py-2 font-mono text-[12.5px] leading-5 [word-break:break-all]">{confirm}</div>
-            <div className="text-sm leading-[21px] text-muted">Your computer isn&apos;t affected either way. If you don&apos;t choose within 30 seconds, we stop here.</div>
+          <div data-si-pause className="si-slide mt-1 flex flex-col gap-2.5 rounded-2xl border-[1.5px] border-[#d9a441] bg-[#fffbf3] p-4">
+            <div className="text-[15.5px] font-semibold leading-[22px]">The AI helper wants to do something that can&apos;t be undone.</div>
+            <div className="rounded-lg bg-[#f4f5f2] px-3 py-1.5 font-mono text-[12.5px] leading-5 [word-break:break-all]">{confirm}</div>
+            <div className="text-sm leading-5 text-muted">It only affects the test space, never your computer. If you don&apos;t choose in 30 seconds, we stop here.</div>
             <div className="flex flex-wrap gap-2.5">
-              <button onClick={() => answer(true)} className="h-[42px] cursor-pointer rounded-[10px] bg-ink px-4 text-[15px] font-semibold text-white hover:bg-body">Allow in test space</button>
-              <button onClick={() => answer(false)} className="h-[42px] cursor-pointer rounded-[10px] border border-[#cfd3ce] bg-white px-4 text-[15px] font-semibold hover:border-ink">Stop here</button>
+              <button onClick={() => answer(true)} className="h-10 cursor-pointer rounded-[10px] bg-ink px-4 text-[15px] font-semibold text-white hover:bg-body">Allow in test space</button>
+              <button onClick={() => answer(false)} className="h-10 cursor-pointer rounded-[10px] border border-[#cfd3ce] bg-white px-4 text-[15px] font-semibold hover:border-ink">Stop here</button>
             </div>
-          </div>
-        )}
-        {!finished && !confirm && (
-          <div className={`grid gap-3 py-[7px] text-[15px] leading-[22px] text-faint ${everything ? 'grid-cols-[36px_8px_minmax(0,1fr)]' : 'grid-cols-[8px_minmax(0,1fr)]'}`}>
-            {everything && <span />}<span className="mt-[7px] box-border size-2 rounded-full border-[1.5px] border-[#b9bec4]" />
-            <span>{lines.at(-1)?.step === 'grade' ? 'Writing your report…' : awaitProof ? 'Paused so you can read this' : 'Working…'}</span>
           </div>
         )}
       </div>
@@ -253,11 +254,11 @@ function Feed({ lines, confirm, answer, start, finished, awaitProof, plain }: {
 }
 
 const PLAIN_NOW: Record<Beat, string> = {
-  calm: 'The agent is working on the task, following the skill.',
+  calm: 'The AI helper is doing the task, following the skill.',
   reach: 'The skill is trying to send data out.',
   stop: 'The attempt hit the edge of the test space and was stopped.',
   proof: 'The attempt to send data out was stopped. Nothing left.',
-  clean: 'The agent finished. Nothing tried to leave.',
+  clean: 'The AI helper finished. Nothing tried to leave.',
   destroyed: 'The test space has been destroyed.',
 };
 
@@ -265,7 +266,7 @@ function PlainCard({ beat, confirm, fileName }: { beat: Beat; confirm: string | 
   return (
     <div aria-live="polite" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-line p-[22px] text-[15.5px] leading-[23px]">
       <div className="text-base font-semibold">Inside the throwaway test space</div>
-      <div className="text-muted">A test agent, the skill, {fileName || 'some sample files'} and fake keys.</div>
+      <div className="text-muted">An AI helper, the skill, {fileName || 'some sample files'} and fake keys.</div>
       <div className="pt-1.5 text-base font-semibold">Right now</div>
       <div className="text-muted">{confirm ? 'Paused. Waiting for you to allow or stop the next step.' : PLAIN_NOW[beat]}</div>
     </div>
@@ -289,10 +290,12 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
   const recording = useRecording();
   const skill = check?.skill;
   const start = lines[0] ? new Date(lines[0].at).getTime() : 0;
-  const latest = [...lines].reverse().find((l) => !/^Agent ran: (read|write) /.test(l.text));
-  const now = latest ? latest.text.replace(/^Agent ran: .*/s, 'The agent is working on the task').replace(/^Agent got the task.*/s, 'The agent has its task') : 'Getting ready…';
+  const stepKey = [...lines].reverse().find((l) => l.step)?.step;
+  const stepIndex = STEPS.findIndex((s) => s.key === stepKey);
+  const step = finished ? STEPS.length : Math.max(stepIndex, 0) + 1;
   const carried = caught && caught.matches.length > 0 ? 'key' : caught && (caught.body || caught.method === 'POST') ? 'data' : 'request';
-  // One thing at a time: at the catch, the proof takes the feed's place until the reader moves on.
+  const said = headline(beat, stepKey, confirm, finished);
+  // One thing at a time: at the catch, the proof takes the list's place until the reader moves on.
   const proofNow = !review && panel && caught && awaitProof;
 
   return (
@@ -309,7 +312,7 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
         )}
         <VultrBadge />
       </Nav>
-      <main className="mx-auto box-border flex w-full max-w-[1200px] flex-col gap-5 px-4 pb-12 pt-5 md:px-10 md:pt-7">
+      <main className="mx-auto box-border flex w-full max-w-[1280px] flex-col gap-5 px-4 pb-10 pt-5 md:px-10 md:pt-8">
         {review && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-[#c9d7f2] bg-tint px-5 py-3">
             <span className="text-[15px] text-accent-hover">This test has finished. Here&apos;s what happened.</span>
@@ -317,30 +320,30 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
           </div>
         )}
 
-        <div data-si-top className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl font-semibold tracking-[-0.01em] [overflow-wrap:anywhere]">{skill?.name ?? 'Fetching the skill…'}</h1>
-            {skill?.testSample && <TestSampleChip />}
+        <div data-si-top className="flex flex-col gap-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-[15px] text-muted">
+              Testing <span className="font-semibold text-ink [overflow-wrap:anywhere]">{skill?.name ?? 'your skill'}</span>
+              {skill?.testSample && <TestSampleChip />}
+            </div>
+            <Progress step={step} />
           </div>
-          <p className="text-[15.5px] leading-[23px] text-muted [overflow-wrap:anywhere]">
-            {task ? <>We asked the agent: <span className="text-ink">{task}</span></> : 'Writing a small everyday task for it…'}
-          </p>
+          <h1 aria-live="polite" key={said.text} className={`si-fade text-[28px] font-semibold leading-9 tracking-[-0.02em] md:text-[34px] md:leading-[42px] ${said.tone}`}>{said.text}</h1>
+          {task && <p className="text-[15.5px] leading-[23px] text-muted [overflow-wrap:anywhere]">We asked the AI helper: <span className="text-ink">{task}</span></p>}
         </div>
 
         {check?.position !== undefined && <p className="text-[15px] text-muted">Waiting for {check.position === 1 ? 'one check' : `${check.position} checks`} ahead of yours.</p>}
 
-        <Steps lines={lines} finished={finished} />
-
-        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="flex min-w-0 flex-col gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className={`min-w-0 rounded-[20px] border border-line bg-white p-4 ${plain ? '' : `h-[400px] ${STAGE_HEIGHT}`}`}>
             {plain
               ? <PlainCard beat={beat} confirm={confirm} fileName={files[0]} />
-              : <div className="relative min-h-[360px] flex-1"><div className="absolute inset-0"><GlassBox beat={beat} host={caught?.host} taken={taken} carried={carried} now={now} /></div></div>}
-            {review && panel && caught && <CaughtPanel attempt={caught} />}
+              : <GlassBox beat={beat} host={caught?.host} taken={taken} carried={carried} />}
           </div>
           {proofNow
-            ? <CaughtPanel attempt={caught} onContinue={!recording ? continueRun : undefined} />
-            : <Feed lines={lines} confirm={confirm} answer={answer} start={start} finished={finished} awaitProof={awaitProof} plain={plain} />}
+            ? <div className={`min-h-[340px] ${STAGE_HEIGHT}`}><CaughtPanel attempt={caught} onContinue={!recording ? continueRun : undefined} /></div>
+            : <Feed lines={lines} confirm={confirm} answer={answer} start={start} finished={finished} plain={plain} />}
+          {review && panel && caught && <div className="lg:col-span-2"><CaughtPanel attempt={caught} /></div>}
         </div>
       </main>
     </div>

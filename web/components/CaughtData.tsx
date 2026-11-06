@@ -1,3 +1,5 @@
+'use client';
+import { useState } from 'react';
 import type { OutboundAttempt } from '@/lib/api';
 
 function pretty(body: string): string {
@@ -65,33 +67,55 @@ export function Disguises({ attempt }: { attempt: OutboundAttempt }) {
   return <div className="font-sans text-[12.5px] font-semibold text-[#f2c46b]">The key was {how.join(' and ')}. We decoded it to find it.</div>;
 }
 
+/** The keys it tried to send, shown on their own so nobody has to read a raw message. */
+export function StolenKeys({ attempt }: { attempt: OutboundAttempt }) {
+  const seen = new Set<string>();
+  const keys = attempt.matches.filter((m) => !seen.has(m.label) && Boolean(seen.add(m.label)));
+  return (
+    <div className="flex flex-col gap-2">
+      {keys.map((m) => (
+        <div key={m.decoy} className="flex flex-col gap-1">
+          <div className="text-[13px] font-medium">{m.label}</div>
+          <div className="font-mono text-[13px] leading-5 [word-break:break-all]">
+            <mark className="si-mark rounded bg-[#f2c46b] px-1.5 py-0.5 text-ink [word-break:break-all]">{m.encoding === 'dns' ? 'hidden in the website name' : m.text.slice(0, 80)}</mark>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function CaughtPanel({ attempt, onContinue }: { attempt: OutboundAttempt; onContinue?: () => void }) {
+  const [raw, setRaw] = useState(false);
   const key = attempt.matches.length > 0;
   return (
-    <div data-si-caught className="si-panel flex min-w-0 flex-col overflow-hidden rounded-2xl border-[1.5px] border-red bg-white shadow-[0_10px_28px_rgba(200,55,45,0.12)]">
-      <div className="bg-red-tint px-[18px] py-3.5 text-[17px] font-semibold text-red-text">We stopped this</div>
-      <div className="flex flex-1 flex-col gap-4 p-[18px]">
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[13px] text-soft">Where it was going</div>
-          <div className="font-mono text-[13.5px] leading-5 [word-break:break-all]"><Highlighted text={addressOf(attempt)} attempt={attempt} /></div>
+    <div data-si-caught className="si-panel flex h-full min-w-0 flex-col overflow-hidden rounded-[20px] border-[1.5px] border-red bg-white shadow-[0_10px_28px_rgba(200,55,45,0.12)]">
+      <div className="bg-red-tint px-5 py-3 text-[17px] font-semibold text-red-text">Caught it!</div>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-3.5">
+        {key && (
+          <div className="flex flex-col gap-1.5">
+            <div className="text-[13px] text-soft">It tried to send</div>
+            <StolenKeys attempt={attempt} />
+          </div>
+        )}
+        <div className="flex flex-col gap-1">
+          <div className="text-[13px] text-soft">To this website</div>
+          <div className="font-mono text-[13px] leading-5 [word-break:break-all]">{attempt.host}</div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[13px] text-soft">What it tried to send</div>
-          <div className="flex max-h-[260px] flex-col gap-2 overflow-auto rounded-xl bg-ink px-4 py-3.5 font-mono text-[13px] leading-[22px] text-[#e6e8eb] [word-break:break-all]">
+        {key && <p className="rounded-[10px] bg-amber-tint px-3 py-2 text-[13.5px] leading-5 text-[#5b3b00]">Keys work like passwords. This one is fake bait we planted, so it unlocks nothing. On your computer, it could have been real.</p>}
+        <button aria-expanded={raw} onClick={() => setRaw((v) => !v)} className="cursor-pointer self-start text-[13.5px] font-medium text-accent underline-offset-2 hover:underline">{raw ? 'Hide the exact message' : 'See the exact message'}</button>
+        {raw && (
+          <div className="si-fade flex flex-col gap-2 rounded-xl bg-ink px-4 py-3 font-mono text-[12.5px] leading-5 text-[#e6e8eb] [word-break:break-all]">
             <SentData attempt={attempt} />
             <Disguises attempt={attempt} />
           </div>
-        </div>
-        {key && (
-          <div className="flex items-start gap-2.5 rounded-[10px] bg-amber-tint px-3 py-2.5 text-[13.5px] leading-5 text-[#5b3b00]">
-            <span className="mt-1.5 size-2 flex-none rotate-45 bg-[#c07a00]" />
-            <span>The highlighted key is fake. We planted it, and it unlocks nothing.</span>
-          </div>
-        )}
-        {onContinue && (
-          <button onClick={onContinue} className="si-continue mt-auto h-[46px] flex-none cursor-pointer rounded-xl bg-ink text-[15px] font-semibold text-white transition-colors hover:bg-body">Continue</button>
         )}
       </div>
+      {onContinue && (
+        <div className="border-t border-line2 p-3.5">
+          <button onClick={onContinue} className="si-continue h-[46px] w-full cursor-pointer rounded-xl bg-ink text-[15px] font-semibold text-white transition-colors hover:bg-body">Continue</button>
+        </div>
+      )}
     </div>
   );
 }

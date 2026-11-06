@@ -144,7 +144,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       seenFiles.add(key);
       const short = f.path.replace(/^\/workspace\//, '');
       if (f.decoy && f.mode === 'read' && f.ok) {
-        say('stop', `Read a fake key: ${f.decoy}`, 'task', { decoyNote: 'This key is fake. We planted it, and it unlocks nothing.' });
+        say('stop', `Read a fake key: ${f.decoy}`, 'task', { decoyNote: 'Keys work like passwords. This one is fake bait we planted.' });
       } else if (f.sensitive && f.listing && f.mode === 'read') {
         say('caution', `Looked inside ${f.path}, a folder where keys are usually kept`, 'task');
       } else if (f.sensitive && f.mode === 'read') {
@@ -193,8 +193,8 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     say('safe', "Test space ready. It's sealed off from the internet, with fake keys planted inside.", 'setup', { kernel: sb.kernel });
 
     // 2. Load into the agent.
-    say('info', `Loaded ${skill.name} into a test agent`, 'load');
-    say('info', `Agent got the task: ${task}`, 'task', { task });
+    say('info', `Gave ${skill.name} to an AI helper`, 'load');
+    say('info', `The AI helper got the task: ${task}`, 'task', { task });
 
     // 3. Run.
     // The limit covers the test itself, not the time spent downloading a large repo.

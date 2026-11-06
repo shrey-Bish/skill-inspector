@@ -11,7 +11,7 @@ export function useRecording(): boolean {
 
 export function Logo({ large = false }: { large?: boolean }) {
   return (
-    <span className={`flex items-center font-semibold ${large ? 'gap-3 text-[22px]' : 'gap-2.5 text-base'}`}>
+    <span className={`flex items-center whitespace-nowrap font-semibold ${large ? 'gap-3 text-[22px]' : 'gap-2.5 text-base'}`}>
       <span className={`box-border flex items-center justify-center border-ink ${large ? 'size-[30px] rounded-lg border-[2.5px]' : 'size-[22px] rounded-md border-2'}`}>
         <span className={`bg-accent ${large ? 'size-2.5 rounded-[3px]' : 'size-2 rounded-[2px]'}`} />
       </span>
@@ -27,7 +27,7 @@ export function Nav({ current, children }: { current?: 'history'; children?: Rea
       <Link href={withMode('/?stay=1')} className="text-ink no-underline"><Logo /></Link>
       <div className="flex items-center gap-4 md:gap-6">
         {children}
-        {!recording && <Link href="/history/" className={`text-[15px] hover:text-ink ${current === 'history' ? 'font-semibold text-ink' : 'text-muted'}`}>History</Link>}
+        {!recording && <Link href="/history/" className={`text-[15px] hover:text-ink ${children ? 'hidden sm:inline' : ''} ${current === 'history' ? 'font-semibold text-ink' : 'text-muted'}`}>History</Link>}
       </div>
     </header>
   );
