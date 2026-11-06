@@ -53,7 +53,7 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
     signals.push({
       level: 'stop',
       title: 'Tried to send a decoy key out',
-      plain: `We found ${labels.join(' and ')} in the data it tried to send to ${leaks[0].host}.`,
+      plain: `It tried to send fake keys (${labels.join(' and ')}) to ${leaks[0].host}.`,
     });
   }
 
@@ -62,7 +62,7 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
     signals.push({
       level: 'stop',
       title: 'Read a decoy key',
-      plain: `It opened ${[...new Set(decoyReads.map((f) => f.decoy))].join(', ')}, which an ordinary task has no reason to touch.`,
+      plain: `It read fake keys (${[...new Set(decoyReads.map((f) => f.decoy))].join(', ')}) that this task had no reason to touch.`,
     });
   }
 
@@ -240,7 +240,7 @@ export function saysVsDid(description: string, ev: Evidence, skillDir: string): 
   }
 
   const decoys = [...new Set(ev.files.filter((f) => f.decoy && f.ok && f.mode === 'read').map((f) => f.decoy!))];
-  for (const d of decoys) did.push({ text: `Read a decoy key: ${d}`, surprise: true });
+  for (const d of decoys) did.push({ text: `Read a fake key: ${d}`, surprise: true });
 
   for (const f of ev.files.filter((f) => f.sensitive && !f.decoy && f.mode === 'read').slice(0, 3)) {
     did.push({ text: f.listing ? `Looked inside ${f.path}` : `Looked for keys in ${f.path}`, surprise: true });

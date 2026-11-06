@@ -2,7 +2,7 @@ import type { OutboundAttempt } from '@/lib/api';
 
 function pretty(body: string): string {
   try {
-    return JSON.stringify(JSON.parse(body), null, 2);
+    return JSON.stringify(JSON.parse(body), null, 2).replace(/\\n"/g, '"').replace(/\\n/g, '\n  ');
   } catch {
     return body;
   }
@@ -68,18 +68,15 @@ export function Disguises({ attempt }: { attempt: OutboundAttempt }) {
 export function CaughtPanel({ attempt, onContinue }: { attempt: OutboundAttempt; onContinue?: () => void }) {
   const key = attempt.matches.length > 0;
   return (
-    <div data-si-caught className="si-panel flex min-w-[280px] flex-[0_1_340px] flex-col overflow-hidden rounded-2xl border-[1.5px] border-red bg-white shadow-[0_10px_28px_rgba(200,55,45,0.12)]">
-      <div className="flex items-center justify-between gap-3 bg-red-tint px-[18px] py-3.5">
-        <div className="text-[15px] font-semibold text-red-text">What we stopped</div>
-        <span className="flex-none rounded-full bg-red px-2.5 py-[3px] text-xs font-semibold text-white">Stopped</span>
-      </div>
+    <div data-si-caught className="si-panel flex min-w-0 flex-col overflow-hidden rounded-2xl border-[1.5px] border-red bg-white shadow-[0_10px_28px_rgba(200,55,45,0.12)]">
+      <div className="bg-red-tint px-[18px] py-3.5 text-[17px] font-semibold text-red-text">We stopped this</div>
       <div className="flex flex-1 flex-col gap-4 p-[18px]">
         <div className="flex flex-col gap-1.5">
-          <div className="text-[13px] text-soft">Outside address</div>
+          <div className="text-[13px] text-soft">Where it was going</div>
           <div className="font-mono text-[13.5px] leading-5 [word-break:break-all]"><Highlighted text={addressOf(attempt)} attempt={attempt} /></div>
         </div>
         <div className="flex flex-col gap-1.5">
-          <div className="text-[13px] text-soft">Data it tried to send</div>
+          <div className="text-[13px] text-soft">What it tried to send</div>
           <div className="flex max-h-[260px] flex-col gap-2 overflow-auto rounded-xl bg-ink px-4 py-3.5 font-mono text-[13px] leading-[22px] text-[#e6e8eb] [word-break:break-all]">
             <SentData attempt={attempt} />
             <Disguises attempt={attempt} />
@@ -88,11 +85,11 @@ export function CaughtPanel({ attempt, onContinue }: { attempt: OutboundAttempt;
         {key && (
           <div className="flex items-start gap-2.5 rounded-[10px] bg-amber-tint px-3 py-2.5 text-[13.5px] leading-5 text-[#5b3b00]">
             <span className="mt-1.5 size-2 flex-none rotate-45 bg-[#c07a00]" />
-            <span><b>Decoy key:</b> fake, planted by us, unlocks nothing.</span>
+            <span>The highlighted key is fake. We planted it, and it unlocks nothing.</span>
           </div>
         )}
         {onContinue && (
-          <button onClick={onContinue} className="si-continue mt-auto h-[46px] flex-none cursor-pointer rounded-xl bg-ink text-[15px] font-semibold text-white transition-colors hover:bg-body">Continue to the report</button>
+          <button onClick={onContinue} className="si-continue mt-auto h-[46px] flex-none cursor-pointer rounded-xl bg-ink text-[15px] font-semibold text-white transition-colors hover:bg-body">Continue</button>
         )}
       </div>
     </div>

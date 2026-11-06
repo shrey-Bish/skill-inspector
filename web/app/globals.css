@@ -74,5 +74,3 @@ body {
 html.record body { zoom: 1.3333; width: 1440px; }
 /* The catch has to fit the frame in one shot, so the top cards give up their spare height. */
 html.record main { padding-top: 16px; gap: 14px; }
-html.record [data-si-top] { gap: 14px; }
-html.record [data-si-top] > div { padding-top: 10px; padding-bottom: 10px; }

@@ -6,11 +6,14 @@ import { DECOYS, GlassBox, type Beat } from './GlassBox';
 import { Nav, primaryButton, TestSampleChip, useRecording, VultrBadge } from './ui';
 
 const STEPS: { key: NonNullable<FeedEvent['step']>; label: string }[] = [
-  { key: 'setup', label: 'Set up test space' },
-  { key: 'load', label: 'Load skill into a test agent' },
-  { key: 'task', label: 'Give the agent a task' },
-  { key: 'grade', label: 'Watch & grade' },
+  { key: 'setup', label: 'Set up' },
+  { key: 'load', label: 'Load the skill' },
+  { key: 'task', label: 'Run the task' },
+  { key: 'grade', label: 'Grade it' },
 ];
+
+// Setup chatter and raw commands stay behind "Show every step".
+const QUIET = /^(Fetching the skill|Drafting an ordinary|Loaded |Agent got the task|Grading from|Agent ran: )/;
 
 const LINE_GAP = 1200;
 const FAST_GAP = 450; // A long backlog still has to catch up with the run.
@@ -112,7 +115,7 @@ function useRun(id: string, onDone: () => void, review: boolean) {
           if (hasKey || !caughtHasKey.current) setCaught(attempt);
           if (hasKey) { caughtHasKey.current = true; markTaken(next.text); }
           if (review) {
-            setPanel(true);
+            if (hasKey) setPanel(true);
           } else if (!animated || (hasKey && !keyAnimated)) {
             animated = true;
             keyAnimated = keyAnimated || hasKey;
@@ -123,9 +126,7 @@ function useRun(id: string, onDone: () => void, review: boolean) {
             setBeat('stop');
             await wait(STOP);
             setBeat('proof');
-            setPanel(true);
-            reveal('[data-si-caught]');
-            if (hasKey) holdAfterStop = true;
+            if (hasKey) { setPanel(true); reveal('[data-si-caught]'); holdAfterStop = true; }
             continue;
           }
         }
@@ -173,15 +174,15 @@ function useRun(id: string, onDone: () => void, review: boolean) {
 function Steps({ lines, finished }: { lines: FeedEvent[]; finished: boolean }) {
   const reached = lines.reduce((max, l) => Math.max(max, STEPS.findIndex((s) => s.key === l.step)), 0);
   return (
-    <ol className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+    <ol className="flex flex-wrap gap-x-7 gap-y-2">
       {STEPS.map((step, i) => {
         const done = i < reached || finished;
         const active = i === reached && !finished;
         return (
-          <li key={step.key} className={`flex items-center gap-2.5 text-[15px] ${active ? 'font-semibold' : done ? 'text-ink' : 'text-faint'}`} aria-current={active ? 'step' : undefined}>
-            {done && <span className="si-line flex size-6 flex-none items-center justify-center rounded-full bg-green text-[13px] font-bold text-white">✓</span>}
-            {active && <span className="box-border flex size-6 flex-none items-center justify-center rounded-full border-2 border-accent"><span className="size-2 rounded-full bg-accent" /></span>}
-            {!done && !active && <span className="box-border size-6 flex-none rounded-full border-2 border-[#c5c9ce]" />}
+          <li key={step.key} className={`flex items-center gap-2 text-[15px] ${active ? 'font-semibold' : done ? 'text-ink' : 'text-faint'}`} aria-current={active ? 'step' : undefined}>
+            {done && <span className="si-line flex size-[22px] flex-none items-center justify-center rounded-full bg-green text-xs font-bold text-white">✓</span>}
+            {active && <span className="box-border flex size-[22px] flex-none items-center justify-center rounded-full border-2 border-accent"><span className="size-2 rounded-full bg-accent" /></span>}
+            {!done && !active && <span className="box-border size-[22px] flex-none rounded-full border-2 border-[#c5c9ce]" />}
             <span>{step.label}</span>
           </li>
         );
@@ -197,39 +198,43 @@ function Feed({ lines, confirm, answer, start, finished, awaitProof, plain }: {
   lines: FeedEvent[]; confirm: string | null; answer: (allow: boolean) => void; start: number; finished: boolean; awaitProof: boolean; plain: boolean;
 }) {
   const box = useRef<HTMLDivElement>(null);
+  const [everything, setEverything] = useState(false);
   useEffect(() => {
     if (box.current) box.current.scrollTop = box.current.scrollHeight;
-  }, [lines.length, confirm, finished]);
+  }, [lines.length, confirm, finished, everything]);
   const firstDecoy = lines.findIndex((l) => dataOf(l).decoyNote);
-  const lastAt = lines.at(-1);
   return (
-    <div className="box-border flex min-w-0 flex-[1_1_300px] flex-col gap-1.5 rounded-[20px] border border-line bg-white px-6 py-[22px] lg:max-w-[420px]">
-      <div className="pb-2 text-base font-semibold">What&apos;s happening</div>
-      <div ref={box} aria-live="polite" className="flex max-h-[470px] flex-col overflow-y-auto">
+    <div className="box-border flex min-w-0 flex-col gap-1.5 rounded-[20px] border border-line bg-white px-6 py-5">
+      <div className="flex items-center justify-between gap-3 pb-1.5">
+        <div className="text-base font-semibold">What&apos;s happening</div>
+        <button onClick={() => setEverything((v) => !v)} aria-pressed={everything} className="cursor-pointer text-[13.5px] text-muted underline-offset-2 hover:text-ink hover:underline">
+          {everything ? 'Show less' : 'Show every step'}
+        </button>
+      </div>
+      <div ref={box} aria-live="polite" className="flex max-h-[440px] flex-col overflow-y-auto">
         {lines.map((l, i) => {
-          // "read x" and "write x" repeat the "Opened x" and "Wrote x" lines that follow them.
           if (/^Agent ran: (read|write) /.test(l.text)) return null;
+          if (!everything && QUIET.test(l.text)) return null;
           const command = /^Agent ran: ([\s\S]+)$/.exec(l.text)?.[1];
           const stopped = /^We stopped it/.test(l.text);
           return (
-            <div key={l.seq} className={`si-line grid grid-cols-[36px_8px_minmax(0,1fr)] gap-3 py-[7px] text-[15px] leading-[22px] ${COLOR[l.level]}`}>
-              <span className="font-mono text-[12.5px] text-faint">{clock(new Date(l.at).getTime() - start)}</span>
+            <div key={l.seq} className={`si-line grid gap-3 py-[7px] text-[15px] leading-[22px] ${everything ? 'grid-cols-[36px_8px_minmax(0,1fr)]' : 'grid-cols-[8px_minmax(0,1fr)]'} ${COLOR[l.level]}`}>
+              {everything && <span className="font-mono text-[12.5px] text-faint">{clock(new Date(l.at).getTime() - start)}</span>}
               <span className={`mt-[7px] size-2 ${l.level === 'caution' ? 'rotate-45' : l.level === 'stop' ? 'rounded-[1px]' : 'rounded-full'} ${DOT[l.level]}`} />
               <span className={`si-line-text flex flex-col gap-2 [overflow-wrap:anywhere] ${stopped ? 'font-semibold' : ''}`}>
                 {command
-                  ? <><span>Agent ran a command</span>{!plain && <code title={command} className="line-clamp-2 rounded-md bg-[#f4f5f2] px-2 py-1 font-mono text-[12px] leading-[18px] text-body [word-break:break-all]">{command}</code>}</>
+                  ? <><span>Agent ran a command</span>{!plain && <code className="rounded-md bg-[#f4f5f2] px-2 py-1 font-mono text-[12px] leading-[18px] text-body [word-break:break-all]">{command}</code>}</>
                   : l.text}
-                {i === firstDecoy && <span className="rounded-lg bg-amber-tint px-2.5 py-[7px] text-[13.5px] font-normal leading-[19px] text-[#5b3b00]">Decoy key: fake, planted by us, unlocks nothing.</span>}
+                {i === firstDecoy && <span className="rounded-lg bg-amber-tint px-2.5 py-[7px] text-[13.5px] font-normal leading-[19px] text-[#5b3b00]">This key is fake. We planted it, and it unlocks nothing.</span>}
               </span>
             </div>
           );
         })}
         {confirm && (
-          <div data-si-pause className="si-slide mt-2.5 flex flex-col gap-3 rounded-2xl border-[1.5px] border-[#d9a441] bg-[#fffbf3] p-[18px] shadow-[0_8px_22px_rgba(176,110,0,0.10)]">
-            <div className="flex items-center gap-2 text-[13px] font-semibold text-[#7a4a00]"><span className="size-2 rotate-45 bg-[#c07a00]" />Paused at {lastAt ? clock(new Date(lastAt.at).getTime() - start) : '0:00'}</div>
+          <div data-si-pause className="si-slide mt-2 flex flex-col gap-3 rounded-2xl border-[1.5px] border-[#d9a441] bg-[#fffbf3] p-[18px] shadow-[0_8px_22px_rgba(176,110,0,0.10)]">
             <div className="text-base font-semibold leading-[23px]">The agent wants to run something that can&apos;t be undone.</div>
             <div className="rounded-lg bg-[#f4f5f2] px-3 py-2 font-mono text-[12.5px] leading-5 [word-break:break-all]">{confirm}</div>
-            <div className="text-sm leading-[21px] text-muted">This can&apos;t be undone inside the test space. Your computer isn&apos;t affected either way. If you don&apos;t choose within 30 seconds, we stop here.</div>
+            <div className="text-sm leading-[21px] text-muted">Your computer isn&apos;t affected either way. If you don&apos;t choose within 30 seconds, we stop here.</div>
             <div className="flex flex-wrap gap-2.5">
               <button onClick={() => answer(true)} className="h-[42px] cursor-pointer rounded-[10px] bg-ink px-4 text-[15px] font-semibold text-white hover:bg-body">Allow in test space</button>
               <button onClick={() => answer(false)} className="h-[42px] cursor-pointer rounded-[10px] border border-[#cfd3ce] bg-white px-4 text-[15px] font-semibold hover:border-ink">Stop here</button>
@@ -237,8 +242,8 @@ function Feed({ lines, confirm, answer, start, finished, awaitProof, plain }: {
           </div>
         )}
         {!finished && !confirm && (
-          <div className="grid grid-cols-[36px_8px_minmax(0,1fr)] gap-3 py-[7px] text-[15px] leading-[22px] text-faint">
-            <span /><span className="mt-[7px] box-border size-2 rounded-full border-[1.5px] border-[#b9bec4]" />
+          <div className={`grid gap-3 py-[7px] text-[15px] leading-[22px] text-faint ${everything ? 'grid-cols-[36px_8px_minmax(0,1fr)]' : 'grid-cols-[8px_minmax(0,1fr)]'}`}>
+            {everything && <span />}<span className="mt-[7px] box-border size-2 rounded-full border-[1.5px] border-[#b9bec4]" />
             <span>{lines.at(-1)?.step === 'grade' ? 'Writing your report…' : awaitProof ? 'Paused so you can read this' : 'Working…'}</span>
           </div>
         )}
@@ -258,9 +263,9 @@ const PLAIN_NOW: Record<Beat, string> = {
 
 function PlainCard({ beat, confirm, fileName }: { beat: Beat; confirm: string | null; fileName?: string }) {
   return (
-    <div aria-live="polite" className="flex min-w-0 flex-[1_1_380px] flex-col gap-3 self-start rounded-2xl border border-line p-[22px] text-[15.5px] leading-[23px]">
+    <div aria-live="polite" className="flex min-w-0 flex-col gap-3 rounded-2xl border border-line p-[22px] text-[15.5px] leading-[23px]">
       <div className="text-base font-semibold">Inside the throwaway test space</div>
-      <div className="text-muted">A test agent, the skill, {fileName || 'some sample files'} and decoy keys.</div>
+      <div className="text-muted">A test agent, the skill, {fileName || 'some sample files'} and fake keys.</div>
       <div className="pt-1.5 text-base font-semibold">Right now</div>
       <div className="text-muted">{confirm ? 'Paused. Waiting for you to allow or stop the next step.' : PLAIN_NOW[beat]}</div>
     </div>
@@ -285,8 +290,10 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
   const skill = check?.skill;
   const start = lines[0] ? new Date(lines[0].at).getTime() : 0;
   const latest = [...lines].reverse().find((l) => !/^Agent ran: (read|write) /.test(l.text));
-  const now = latest ? latest.text.replace(/^Agent ran: .*/s, 'Agent ran a command') : 'Getting ready…';
+  const now = latest ? latest.text.replace(/^Agent ran: .*/s, 'The agent is working on the task').replace(/^Agent got the task.*/s, 'The agent has its task') : 'Getting ready…';
   const carried = caught && caught.matches.length > 0 ? 'key' : caught && (caught.body || caught.method === 'POST') ? 'data' : 'request';
+  // One thing at a time: at the catch, the proof takes the feed's place until the reader moves on.
+  const proofNow = !review && panel && caught && awaitProof;
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -302,42 +309,38 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
         )}
         <VultrBadge />
       </Nav>
-      <main className="mx-auto box-border flex w-full max-w-[1360px] flex-col gap-5 px-4 pb-12 pt-5 md:px-10 md:pt-6">
+      <main className="mx-auto box-border flex w-full max-w-[1200px] flex-col gap-5 px-4 pb-12 pt-5 md:px-10 md:pt-7">
         {review && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-[#c9d7f2] bg-tint px-5 py-3">
-            <span className="text-[15px] text-accent-hover">This test has finished. Here&apos;s everything that happened.</span>
+            <span className="text-[15px] text-accent-hover">This test has finished. Here&apos;s what happened.</span>
             <button onClick={onDone} className={`${primaryButton} !h-10 cursor-pointer !text-[15px]`}>See the report</button>
           </div>
         )}
-        <div data-si-top className="flex flex-wrap gap-6">
-          <div className="flex min-w-0 flex-[1_1_520px] items-center gap-4 rounded-[18px] border border-line bg-white px-5 py-4">
-            <div className="flex size-12 flex-none items-center justify-center rounded-xl bg-tint"><div className="size-4 rounded bg-accent" /></div>
-            <div className="flex min-w-0 flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="text-xl font-semibold [overflow-wrap:anywhere]">{skill?.name ?? 'Fetching the skill…'}</span>
-                {skill?.testSample && <TestSampleChip />}
-              </div>
-              {skill && <div className="line-clamp-2 text-[15px] leading-[21px] text-muted [overflow-wrap:anywhere]" title={skill.description}>“{skill.description}”</div>}
-            </div>
+
+        <div data-si-top className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-2xl font-semibold tracking-[-0.01em] [overflow-wrap:anywhere]">{skill?.name ?? 'Fetching the skill…'}</h1>
+            {skill?.testSample && <TestSampleChip />}
           </div>
-          <div className="flex min-w-0 flex-[1_1_300px] flex-col justify-center gap-1 rounded-[18px] border border-line bg-white px-5 py-4 lg:max-w-[420px]">
-            <div className="text-[13px] text-soft">Task we gave the agent</div>
-            <div className="text-[15px] font-semibold leading-[21px] [overflow-wrap:anywhere]">{task || 'Drafting an ordinary task…'}</div>
-          </div>
+          <p className="text-[15.5px] leading-[23px] text-muted [overflow-wrap:anywhere]">
+            {task ? <>We asked the agent: <span className="text-ink">{task}</span></> : 'Writing a small everyday task for it…'}
+          </p>
         </div>
 
-        {check?.position !== undefined && <p className="text-[15px] text-muted">Waiting for {check.position === 1 ? 'one check' : `${check.position} checks`} ahead of yours. We run one at a time.</p>}
+        {check?.position !== undefined && <p className="text-[15px] text-muted">Waiting for {check.position === 1 ? 'one check' : `${check.position} checks`} ahead of yours.</p>}
 
         <Steps lines={lines} finished={finished} />
 
-        <div className="flex flex-wrap items-stretch gap-6">
-          <div className="box-border flex min-w-0 flex-[1_1_480px] flex-wrap gap-5 rounded-[20px] border border-line bg-white p-4 md:p-6">
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="flex min-w-0 flex-col gap-5">
             {plain
               ? <PlainCard beat={beat} confirm={confirm} fileName={files[0]} />
-              : <div className="relative h-[470px] min-w-0 flex-[1_1_300px]"><div className="absolute inset-0"><GlassBox beat={beat} host={caught?.host} files={files} taken={taken} carried={carried} now={now} /></div></div>}
-            {panel && caught && <CaughtPanel attempt={caught} onContinue={awaitProof && !recording ? continueRun : undefined} />}
+              : <div className="relative min-h-[360px] flex-1"><div className="absolute inset-0"><GlassBox beat={beat} host={caught?.host} taken={taken} carried={carried} now={now} /></div></div>}
+            {review && panel && caught && <CaughtPanel attempt={caught} />}
           </div>
-          <Feed lines={lines} confirm={confirm} answer={answer} start={start} finished={finished} awaitProof={awaitProof} plain={plain} />
+          {proofNow
+            ? <CaughtPanel attempt={caught} onContinue={!recording ? continueRun : undefined} />
+            : <Feed lines={lines} confirm={confirm} answer={answer} start={start} finished={finished} awaitProof={awaitProof} plain={plain} />}
         </div>
       </main>
     </div>

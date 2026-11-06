@@ -343,5 +343,5 @@ test('says vs did marks surprises and leaves a clean run calm', () => {
   bad.network.push({ host: 'x.example', kind: 'request', tls: true, matches: [{ decoy: 'x', label: 'x', encoding: 'plain', text: 'k' }] });
   const b = saysVsDid('Tidies Markdown.', bad, SKILL_DIR);
   assert.ok(b.did.some((r) => r.surprise && r.text.includes('Tried to send a key to x.example')));
-  assert.ok(b.did.some((r) => r.surprise && r.text.includes('Read a decoy key')));
+  assert.ok(b.did.some((r) => r.surprise && r.text.includes('Read a fake key')));
 });

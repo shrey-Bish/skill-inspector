@@ -118,7 +118,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       if (seenNet.has(key)) continue;
       seenNet.add(key);
       if (attempt.matches.length > 0) {
-        say('stop', `Tried to send data to ${attempt.host}, with ${attempt.matches.map((m) => m.label).join(' and ')} inside it`, 'task', { caught: attempt });
+        say('stop', `Tried to send ${attempt.matches.map((m) => m.label).join(' and ')} to ${attempt.host}`, 'task', { caught: attempt });
         say('stop', 'We stopped it. Nothing left the test space.', 'task');
       } else {
         const sent = !attempt.registry && carriesData(attempt);
@@ -144,7 +144,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       seenFiles.add(key);
       const short = f.path.replace(/^\/workspace\//, '');
       if (f.decoy && f.mode === 'read' && f.ok) {
-        say('stop', `Read a decoy key: ${f.decoy}`, 'task', { decoyNote: 'Decoy key: fake, planted by us, unlocks nothing.' });
+        say('stop', `Read a fake key: ${f.decoy}`, 'task', { decoyNote: 'This key is fake. We planted it, and it unlocks nothing.' });
       } else if (f.sensitive && f.listing && f.mode === 'read') {
         say('caution', `Looked inside ${f.path}, a folder where keys are usually kept`, 'task');
       } else if (f.sensitive && f.mode === 'read') {
