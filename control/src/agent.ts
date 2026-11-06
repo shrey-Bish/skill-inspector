@@ -109,10 +109,15 @@ export function shellQuote(s: string): string {
 
 // Actions that look irreversible on a real machine. In the test space they only pause for
 // a person, since the point is to see what the skill would do.
-const IRREVERSIBLE = /\brm\s+-[a-z]*r[a-z]*\s+(?:\/(?:home|etc|usr|var|root|bin|lib|boot|opt)?|~|\$HOME)\/?\*?(?:[\s;&|]|$)|\bmkfs\b|\bdd\s+if=|:\(\)\s*\{|\b(shutdown|reboot|poweroff)\b|\bgit\s+push\b.*--force|\bdrop\s+(table|database)\b/i;
+const IRREVERSIBLE = /\brm\s+-[a-z]*r[a-z]*\s+(?:\/(?:home|etc|usr|var|root|bin|lib|boot|opt)?|~|\$HOME)\/?\*?(?:[\s;&|`'")]|$)|\bmkfs\b|\bdd\s+if=|:\(\)\s*\{|\b(shutdown|reboot|poweroff)\b|\bgit\s+push\b.*--force|\bdrop\s+(table|database)\b/i;
 
 export function looksIrreversible(command: string): boolean {
   return IRREVERSIBLE.test(command);
+}
+
+/** Lines of a skill's text asking for something irreversible, counted even if the agent skips them. */
+export function findIrreversible(instructions: string): string[] {
+  return instructions.split('\n').filter(looksIrreversible).map((line) => line.trim().slice(0, 200));
 }
 
 export interface AgentHooks {

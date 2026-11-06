@@ -68,6 +68,8 @@ export interface Evidence {
   refusedInstructions: string[];
   /** Lines in the skill's text that send a place keys are kept to somewhere else. */
   keySendingText: string[];
+  /** Commands that can't be undone: asked for at runtime, or written in the skill's text. */
+  irreversible: string[];
 }
 
 export interface Signal {

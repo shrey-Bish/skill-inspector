@@ -2,7 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { TokenBudget } from '../../lib/llm/index.ts';
-import { planTask, runAgent } from './agent.ts';
+import { findIrreversible, planTask, runAgent } from './agent.ts';
 import { makeDecoys, scanForDecoys } from './decoys.ts';
 import { explain } from './explain.ts';
 import { carriesData, containmentFrom, deriveSignals, findKeySending, gradeFrom, isRegistryHost, saysVsDid } from './grade.ts';
@@ -90,7 +90,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
 
   const budget = new TokenBudget(TOKEN_LIMIT);
   const decoys = makeDecoys();
-  const evidence: Evidence = { commands: [], files: [], processes: [], network: [], hiddenText: [], refusedInstructions: [], keySendingText: [] };
+  const evidence: Evidence = { commands: [], files: [], processes: [], network: [], hiddenText: [], refusedInstructions: [], keySendingText: [], irreversible: [] };
   const runDir = join(RUNS_DIR, check.id);
 
   let skill: LoadedSkill | null = null;
@@ -171,6 +171,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     check.skill = { name: skill.name, description: skill.description, source: skill.source, testSample: skill.testSample };
     evidence.hiddenText = skill.hiddenText;
     evidence.keySendingText = findKeySending(skill.instructions);
+    evidence.irreversible = findIrreversible(skill.instructions);
     hooks.update();
 
     say('info', 'Drafting an ordinary task for it', 'setup');
@@ -199,6 +200,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       deadline,
       note: (text) => say('info', text, 'task'),
       confirm: async (command) => {
+        if (!evidence.irreversible.some((line) => line.includes(command))) evidence.irreversible.push(command);
         say('caution', `The agent wants to run something that looks irreversible: ${command.slice(0, 200)}`, 'task', { confirm: command });
         const allowed = await hooks.decide(command);
         say('info', allowed ? 'Allowed, inside the test space only.' : 'Stopped here at your request.', 'task', { confirmed: allowed });
@@ -217,6 +219,9 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     await collectNetwork(sb);
     evidence.refusedInstructions = outcome.skipped;
 
+    if (outcome.toolCalls === 0 && outcome.stoppedByPerson) {
+      throw new CouldntCheck('The test stopped before the agent ran anything, so we have nothing to grade. Its first step was one that needed your go-ahead.');
+    }
     if (outcome.toolCalls === 0) {
       throw new CouldntCheck("The test agent didn't run anything with this skill, so we have nothing to grade.");
     }

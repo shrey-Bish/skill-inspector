@@ -83,6 +83,14 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
     });
   }
 
+  if (ev.irreversible.length > 0) {
+    signals.push({
+      level: 'caution',
+      title: "Asked for something that can't be undone",
+      plain: `It asked to run: ${ev.irreversible[0].slice(0, 200)}`,
+    });
+  }
+
   const keyFolders = ev.files.filter((f) => f.sensitive && f.listing && f.mode === 'read');
   if (keyFolders.length > 0) {
     signals.push({
@@ -250,6 +258,7 @@ export function saysVsDid(description: string, ev: Evidence, skillDir: string): 
   );
   for (const f of stray.slice(0, 3)) did.push({ text: `Changed ${f.path}`, surprise: true });
 
+  for (const c of ev.irreversible.slice(0, 2)) did.push({ text: `Asked to run: ${c.slice(0, 160)}`, surprise: true });
   for (const line of ev.keySendingText.slice(0, 2)) did.push({ text: `Its instructions tell the agent to: ${line}`, surprise: true });
 
   if (did.length === 0) did.push({ text: 'Ran without touching any other files', surprise: false });

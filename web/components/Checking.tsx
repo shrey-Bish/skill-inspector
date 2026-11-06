@@ -66,6 +66,8 @@ function useRun(id: string, onDone: () => void) {
     let animated = false;
     let keyAnimated = false;
     let holdAfterStop = false;
+    let confirmsPlayed = 0;
+    let decisions = 0;
 
     const source = new EventSource(`/api/checks/${id}/stream`);
     source.addEventListener('status', (e) => {
@@ -79,7 +81,7 @@ function useRun(id: string, onDone: () => void) {
       seen.current.add(event.seq);
       const d = dataOf(event);
       if (d.task) setTask(d.task);
-      if (d.confirmed !== undefined) { confirmOpen.current = false; setConfirm(null); }
+      if (d.confirmed !== undefined) { decisions++; confirmOpen.current = false; setConfirm(null); }
       queue.current.push(event);
     });
     source.addEventListener('end', () => {
@@ -125,7 +127,11 @@ function useRun(id: string, onDone: () => void) {
         if (opened) setFileName((f) => f || opened[1]);
         if (d.clean) setBeat('clean');
         if (d.destroyed) setBeat('destroyed');
-        if (d.confirm) { confirmOpen.current = true; setConfirm(d.confirm); reveal('[data-si-pause]'); }
+        if (d.confirm) {
+          // After a reload the decision may already be in, and then there is nothing left to ask.
+          confirmsPlayed++;
+          if (confirmsPlayed > decisions) { confirmOpen.current = true; setConfirm(d.confirm); reveal('[data-si-pause]'); }
+        }
         if (holdAfterStop && /^We stopped it/.test(next.text)) {
           // The proof holds until the reader moves on, or for six seconds in a recording.
           holdAfterStop = false;
