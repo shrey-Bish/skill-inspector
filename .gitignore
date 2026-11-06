@@ -17,3 +17,6 @@ video/
 
 # Office lock files
 ~$*
+
+# Upload the film to LabLab; it is too large to keep in git
+submission/*.mp4
