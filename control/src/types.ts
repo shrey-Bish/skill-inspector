@@ -140,6 +140,8 @@ export interface Check {
   finishedAt?: string;
   skill?: { name: string; description: string; source: string; testSample: boolean };
   report?: Report;
+  /** True once a test space existed, so a failure can say honestly whether the skill ran. */
+  sandboxStarted?: boolean;
   /** Plain words for the "couldn't check" state. */
   problem?: string;
   feed: FeedEvent[];

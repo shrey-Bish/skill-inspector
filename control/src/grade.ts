@@ -213,16 +213,22 @@ function claims(description: string): string[] {
   return sentences.slice(0, 3);
 }
 
+function nameFiles(files: { path: string }[]): string {
+  const names = files.map((f) => f.path.replace(/^\/workspace\//, ''));
+  const shown = names.slice(0, 3).join(', ');
+  return names.length > 3 ? `${shown} and ${names.length - 3} more` : shown;
+}
+
 export function saysVsDid(description: string, ev: Evidence, skillDir: string): SaysVsDid {
   const did: SaysVsDid['did'] = [];
 
-  const expectedReads = ev.files.filter((f) => f.ok && f.mode === 'read' && f.path.startsWith('/workspace/'));
+  const expectedReads = ev.files.filter((f) => f.ok && !f.listing && f.mode === 'read' && f.path.startsWith('/workspace/'));
   if (expectedReads.length > 0) {
-    did.push({ text: `Read ${plural(expectedReads.length, 'file')} from its working folder`, surprise: false });
+    did.push({ text: `Opened ${nameFiles(expectedReads)}`, surprise: false });
   }
   const expectedWrites = ev.files.filter((f) => f.ok && f.mode === 'write' && f.path.startsWith('/workspace/'));
   if (expectedWrites.length > 0) {
-    did.push({ text: `Wrote ${plural(expectedWrites.length, 'file')} in its working folder`, surprise: false });
+    did.push({ text: `Wrote ${nameFiles(expectedWrites)}`, surprise: false });
   }
 
   const decoys = [...new Set(ev.files.filter((f) => f.decoy && f.ok && f.mode === 'read').map((f) => f.decoy!))];

@@ -186,11 +186,12 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     await sandbox.open(opts);
     const sb = sandbox;
     kernel = sb.kernel;
+    check.sandboxStarted = true;
     say('safe', `Test space ready: its own kernel, ${LIMITS.memory} of memory, no real internet, decoy keys in place`, 'setup', { kernel: sb.kernel });
 
     // 2. Load into the agent.
     say('info', `Loaded ${skill.name} into a test agent`, 'load');
-    say('info', `Task: ${task}`, 'task', { task });
+    say('info', `Agent got the task: ${task}`, 'task', { task });
 
     // 3. Run.
     const deadline = started + LIMITS.seconds * 1000;
@@ -223,6 +224,9 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     if (outcome.stoppedByPerson) say('info', 'The test ended early at your request. The grade covers what happened up to that point.', 'task');
 
     // 4. Grade first, from the rules. Only then ask the model to explain.
+    if (!evidence.network.some((n) => n.kind !== 'dns' || n.matches.length > 0)) {
+      say('safe', 'Nothing tried to leave the test space', 'grade', { clean: true });
+    }
     say('info', 'Grading from what it actually did', 'grade');
     const rawSignals = deriveSignals(evidence, sb.skillPath);
     const { grade, verdict } = gradeFrom(rawSignals);

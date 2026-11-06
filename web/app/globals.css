@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-ink: #15181c;
+  --color-body: #2a2f36;
+  --color-muted: #4a5058;
+  --color-soft: #5d636b;
+  --color-faint: #7a8088;
+  --color-line: #e3e4e0;
+  --color-line2: #ecedea;
+  --color-page: #f7f7f5;
+  --color-accent: #2d5bc2;
+  --color-accent-hover: #244ca6;
+  --color-tint: #edf2fc;
+  --color-green: #1f8a4c;
+  --color-green-text: #1f7a45;
+  --color-amber: #d08a10;
+  --color-amber-text: #8a5200;
+  --color-amber-tint: #fdf3e2;
+  --color-red: #c8372d;
+  --color-red-text: #8f2a22;
+  --color-red-tint: #fcecea;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.ease { transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+@keyframes si-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes si-line { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes si-panel { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes si-slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes si-travel { 0% { left: 100%; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: 0; opacity: 0; } }
+@keyframes si-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes si-fall { 0%, 45% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translate(-14px, 12px) rotate(8deg); } }
+@keyframes si-flash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes si-ring { 0% { opacity: 0; transform: scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35); } }
+
+.si-fade { animation: si-fade 0.3s ease-out both; }
+.si-line { animation: si-line 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.si-line-text { animation: si-line 0.35s ease-out 0.1s both; }
+.si-panel { animation: si-panel 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.si-slide { animation: si-slide 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.si-delay { animation-delay: 0.1s; }
+.si-rest { animation: si-line 0.4s ease-out 0.2s both; }
+.si-mark { animation: si-line 0.3s ease-out 0.1s both; display: inline-block; }
+.si-continue { animation: si-line 0.35s ease-out 0.6s both; }
+.si-travel { animation: si-travel 2.4s ease-in-out infinite; }
+.si-grow { transform-origin: left center; animation: si-grow 0.7s cubic-bezier(0.5, 0, 0.9, 0.6) both; }
+.si-fall { animation: si-fall 0.9s ease-in both; }
+.si-flash { animation: si-flash 0.6s ease-out 0.15s both; }
+.si-ring { animation: si-ring 0.7s ease-out 0.1s both; }
+.si-wall-label { animation: si-fade 0.3s 0.5s both; }
+.si-stopped-label { animation: si-fade 0.3s 0.15s both; }
+.si-dissolve { animation: si-fade 0.6s both; }
+
+/* No travel or flash: the frames stand still and each beat cross-fades to the next. */
+@media (prefers-reduced-motion: reduce) {
+  .si-travel { animation: none; display: none; }
+  .si-grow, .si-fall, .si-flash, .si-ring { animation: none; opacity: 1; transform: none; }
+  .si-line, .si-line-text, .si-panel, .si-slide, .si-mark, .si-continue, .si-rest, .si-wall-label, .si-stopped-label, .si-dissolve {
+    animation: si-fade 0.3s ease-out both;
+  }
+}
+
+/* Recording mode: the app at 1440 wide, enlarged to fill a 1920x1080 frame. */
+html.record body { zoom: 1.3333; width: 1440px; }
+/* The catch has to fit the frame in one shot, so the top cards give up their spare height. */
+html.record main { padding-top: 16px; gap: 14px; }
+html.record [data-si-top] { gap: 14px; }
+html.record [data-si-top] > div { padding-top: 10px; padding-bottom: 10px; }
