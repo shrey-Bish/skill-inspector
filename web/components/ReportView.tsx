@@ -99,10 +99,14 @@ function SaysVsDid({ report }: { report: Report }) {
   const { says, did } = report.saysVsDid;
   const calm = did.filter((d) => !d.surprise);
   const surprises = did.filter((d) => d.surprise);
-  const count = Math.max(says.length, calm.length);
-  const rows = Array.from({ length: count }, (_, i) => ({ say: says[i], saw: calm[i]?.text }));
+  // Claims and ordinary actions are compared as a whole. We don't pretend one action proves one claim.
+  const saw = calm.map((d) => d.text);
   const pill = (text: string) => (/send|Tells|instructions/.test(text) ? 'bg-red' : 'bg-amber');
-  const Quote = ({ text }: { text?: string }) => (text ? <>“{text}”</> : <span className="text-faint">—</span>);
+  const Lines = ({ items, quoted }: { items: string[]; quoted?: boolean }) => (
+    items.length === 0
+      ? <span className="text-faint">—</span>
+      : <span className="flex flex-col gap-1.5">{items.map((t, i) => <span key={i}>{quoted ? `“${t}”` : t}</span>)}</span>
+  );
   return (
     <section className="si-rest flex flex-col gap-3 rounded-[20px] border border-line bg-white p-5 md:gap-[18px] md:rounded-[22px] md:px-[30px] md:py-7">
       <div className="flex flex-col gap-1">
@@ -115,13 +119,9 @@ function SaysVsDid({ report }: { report: Report }) {
         <div className="bg-page px-[18px] py-3 text-[13.5px] font-semibold text-muted">What the skill says</div>
         <div className="bg-page" />
         <div className="bg-page px-[18px] py-3 text-[13.5px] font-semibold text-muted">What we saw</div>
-        {rows.map((r, i) => (
-          <div key={i} className="contents">
-            <div className="border-t border-line2 px-[18px] py-4 [overflow-wrap:anywhere]"><Quote text={r.say} /></div>
-            <div className="flex items-center justify-center border-t border-line2 py-4 text-[13px] font-semibold text-green-text">{r.say && r.saw ? 'Matches' : ''}</div>
-            <div className="border-t border-line2 px-[18px] py-4 [overflow-wrap:anywhere]">{r.saw ?? <span className="text-faint">—</span>}</div>
-          </div>
-        ))}
+        <div className="border-t border-line2 px-[18px] py-4 [overflow-wrap:anywhere]"><Lines items={says} quoted /></div>
+        <div className="flex items-center justify-center border-t border-line2 py-4 text-[13px] font-semibold text-green-text">{says.length > 0 && saw.length > 0 ? 'Matches' : ''}</div>
+        <div className="border-t border-line2 px-[18px] py-4 [overflow-wrap:anywhere]"><Lines items={saw} /></div>
         {surprises.map((d, i) => (
           <div key={i} className="contents">
             <div className="border-t border-[#f3d3cf] bg-[#fdf5f4] px-[18px] py-4 italic text-faint">Not mentioned</div>
@@ -133,14 +133,12 @@ function SaysVsDid({ report }: { report: Report }) {
 
       {/* Phone: stacked cards. */}
       <div className="flex flex-col gap-3 md:hidden">
-        {rows.map((r, i) => (
-          <div key={i} className="flex flex-col gap-1.5 rounded-xl border border-line2 px-3.5 py-3 text-[15px] leading-[21px]">
-            <div className="flex justify-between gap-2"><span className="text-[12.5px] text-soft">Says</span>{r.say && r.saw && <span className="text-[12.5px] font-semibold text-green-text">Matches</span>}</div>
-            <div className="[overflow-wrap:anywhere]"><Quote text={r.say} /></div>
-            <div className="pt-1 text-[12.5px] text-soft">We saw</div>
-            <div className="[overflow-wrap:anywhere]">{r.saw ?? <span className="text-faint">—</span>}</div>
-          </div>
-        ))}
+        <div className="flex flex-col gap-1.5 rounded-xl border border-line2 px-3.5 py-3 text-[15px] leading-[21px]">
+          <div className="flex justify-between gap-2"><span className="text-[12.5px] text-soft">Says</span>{says.length > 0 && saw.length > 0 && <span className="text-[12.5px] font-semibold text-green-text">Matches</span>}</div>
+          <div className="[overflow-wrap:anywhere]"><Lines items={says} quoted /></div>
+          <div className="pt-1 text-[12.5px] text-soft">We saw</div>
+          <div className="[overflow-wrap:anywhere]"><Lines items={saw} /></div>
+        </div>
         {surprises.map((d, i) => (
           <div key={i} className="flex flex-col gap-1.5 rounded-xl border border-[#f3d3cf] bg-[#fdf5f4] px-3.5 py-3 text-[15px] leading-[21px]">
             <div className="flex justify-between gap-2"><span className="text-[12.5px] text-soft">Says</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold text-white ${pill(d.text)}`}>Surprise</span></div>
@@ -234,13 +232,16 @@ function CopyButton({ className = '' }: { className?: string }) {
   );
 }
 
-export function ReportView({ check }: { check: CheckView }) {
+export function ReportView({ check, onBack }: { check: CheckView; onBack: () => void }) {
   const report = check.report!;
   useEffect(() => remember(check), [check]);
   return (
     <div className="flex min-h-dvh flex-col">
       <Nav />
       <main className="flex flex-col gap-4 mx-auto box-border w-full max-w-[1360px] px-4 pb-10 pt-4 md:gap-7 md:px-10 md:pb-[72px] md:pt-10">
+        <button onClick={onBack} className="-mb-2 flex cursor-pointer items-center gap-1.5 self-start px-1 text-[15px] font-medium text-muted transition-colors hover:text-ink md:-mb-3 md:px-0">
+          <span aria-hidden>←</span> See how the test ran
+        </button>
         <div className="flex flex-col gap-4 px-1 md:flex-row md:items-end md:justify-between md:gap-6 md:px-0">
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2 md:gap-3">

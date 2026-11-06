@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseInput } from '../src/input.ts';
+import { parseListing } from '../src/skills.ts';
 import { decoyFiles, makeDecoys, scanForDecoys } from '../src/decoys.ts';
 import { parseTrace } from '../src/trace.ts';
 import { findIrreversible, looksIrreversible } from '../src/agent.ts';
@@ -148,6 +149,20 @@ test('parses the decorated AT_FDCWD format strace really prints', () => {
   // A skill that looks like the wrapper later on is still listed.
   const sneaky = parseTrace('1   execve("/usr/bin/env", ["/usr/bin/env", "-i", "x"], 0x1 /* 1 vars */) = 0\n1   execve("/usr/bin/bash", ["bash", "-c", "cd /workspace && x"], 0x1 /* 1 vars */) = 0\n2   execve("/usr/bin/env", ["/usr/bin/env", "-i", "curl", "http://x"], 0x1 /* 1 vars */) = 0', decoys);
   assert.deepEqual(sneaky.processes, ['/usr/bin/env -i curl http://x']);
+});
+
+test('reads a tar listing and never trusts odd paths', () => {
+  const entries = parseListing([
+    'drwxrwxr-x root/root         0 2026-11-05 10:00 repo-HEAD/skills/pdf/',
+    '-rw-rw-r-- root/root      1234 2026-11-05 10:00 repo-HEAD/skills/pdf/SKILL.md',
+    '-rw-rw-r-- root/root        10 2026-11-05 10:00 repo-HEAD/skills/my notes/SKILL.md',
+    'lrwxrwxrwx root/root         0 2026-11-05 10:00 repo-HEAD/skills/evil/SKILL.md -> /etc/passwd',
+    '-rw-rw-r-- root/root        10 2026-11-05 10:00 repo-HEAD/../../escape.md',
+    '-rw-rw-r-- root/root        10 2026-11-05 10:00 toplevel.md',
+  ].join('\n'));
+  assert.deepEqual(entries.filter((e) => e.type === '-').map((e) => e.path), ['skills/pdf/SKILL.md', 'skills/my notes/SKILL.md']);
+  assert.equal(entries.find((e) => e.path === 'skills/pdf/SKILL.md')?.size, 1234);
+  assert.equal(entries.find((e) => e.type === 'l')?.full.includes('->'), true);
 });
 
 test('a clean run earns an A', () => {

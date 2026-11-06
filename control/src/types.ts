@@ -142,6 +142,8 @@ export interface Check {
   finishedAt?: string;
   skill?: { name: string; description: string; source: string; testSample: boolean };
   report?: Report;
+  /** A repo with many skills: nothing ran, and the person picks one of these. */
+  choices?: { name: string; description: string }[];
   /** True once a test space existed, so a failure can say honestly whether the skill ran. */
   sandboxStarted?: boolean;
   /** Plain words for the "couldn't check" state. */

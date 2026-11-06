@@ -13,7 +13,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DATA = process.env.SI_DATA_DIR ?? join(ROOT, 'data/checks');
 const PORT = Number(process.env.PORT ?? 4000);
 const MAX_QUEUE = 8;
-const PER_IP_PER_HOUR = 12;
+const PER_IP_PER_HOUR = 20;
 const DECISION_WAIT_MS = 30_000;
 // Every check spends inference credit, so a public link gets an overall ceiling too.
 const PER_DAY = Number(process.env.SI_CHECKS_PER_DAY ?? 300);

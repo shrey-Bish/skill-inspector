@@ -55,7 +55,7 @@ The test agent is deliberately obedient. It is told truthfully that it is on a d
 - **Decoys prove intent.** Fake AWS, SSH, GitHub, npm, `.env` and environment-variable keys are random per run, so finding one in outbound data can only mean it was taken from where we planted it. Outbound data is scanned plain and URL, base64, hex, reversed and DNS encoded.
 - **Evidence can't be edited by what it records.** `strace` runs as root in the guest and writes to a root-only folder, while the command runs as uid 1000. With `-y`, the trace shows the real file behind each open, so relative paths, symlinks and `cd` can't hide a read.
 - **Fails closed.** If the sandbox can't start or the sink dies, the result is "We couldn't check this", with no grade. There is no unsandboxed fallback.
-- **Limits.** One CPU, 1 GB of memory, a time limit per run and per command, a step limit and a token budget. Irreversible-looking commands pause for a person.
+- **Limits.** One CPU, 1 GB of memory, a 2-minute limit per run, a limit per command, a step limit and a token budget. Irreversible-looking commands pause for a person.
 - **The host is hardened too.** Downloaded repos are never executed on the host, and symlinks in them are deleted. The server runs as a non-root systemd service with most of the filesystem read-only, with limits per IP and per day.
 
 ## How grading works

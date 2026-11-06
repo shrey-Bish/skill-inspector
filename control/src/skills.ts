@@ -1,14 +1,18 @@
 import { spawn } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { createWriteStream, existsSync } from 'node:fs';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ParsedInput, SkillInfo } from './types.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const SAMPLES_DIR = join(ROOT, 'sandbox/samples');
-const MAX_DOWNLOAD = 30 * 1024 * 1024;
+const MAX_DOWNLOAD = 500 * 1024 * 1024;
+const MAX_SKILL_FILES = 3000;
+const MAX_CHOICES = 3000;
 const MAX_SKILL = 15 * 1024 * 1024;
 
 export class SkillError extends Error {}
@@ -42,41 +46,104 @@ export function findHiddenText(text: string): string[] {
   return found;
 }
 
-function run(cmd: string, args: string[], stdin?: NodeJS.ReadableStream): Promise<void> {
+function capture(cmd: string, args: string[], timeoutMs = 120_000): Promise<string> {
   return new Promise((ok, fail) => {
-    const p = spawn(cmd, args, { stdio: [stdin ? 'pipe' : 'ignore', 'ignore', 'ignore'] });
-    if (stdin && p.stdin) (stdin as NodeJS.ReadableStream).pipe(p.stdin);
-    p.on('error', fail);
-    p.on('exit', (code) => (code === 0 ? ok() : fail(new Error(`${cmd} exited ${code}`))));
+    const p = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'ignore'] });
+    const chunks: Buffer[] = [];
+    const timer = setTimeout(() => p.kill('SIGKILL'), timeoutMs);
+    p.stdout.on('data', (c) => chunks.push(c));
+    p.on('error', (e) => { clearTimeout(timer); fail(e); });
+    p.on('close', (code) => {
+      clearTimeout(timer);
+      if (code === 0) ok(Buffer.concat(chunks).toString('utf8'));
+      else fail(new Error(`${cmd} exited ${code}`));
+    });
   });
 }
 
-/** Downloads a public repo as a tar file. Nothing in it is executed on this machine. */
-async function downloadRepo(input: Extract<ParsedInput, { kind: 'github' }>, into: string): Promise<void> {
+// A picked skill is often re-fetched moments later, so the last few repos are kept briefly.
+const archives = new Map<string, { file: string; at: number }>();
+const ARCHIVE_TTL = 15 * 60_000;
+
+async function pruneArchives(keep: number): Promise<void> {
+  const rows = [...archives.entries()].sort((x, y) => y[1].at - x[1].at);
+  for (const [i, [key, row]] of rows.entries()) {
+    if (i >= keep || Date.now() - row.at > ARCHIVE_TTL) {
+      archives.delete(key);
+      await rm(dirname(row.file), { recursive: true, force: true }).catch(() => {});
+    }
+  }
+}
+
+/** Saves a public repo as a tar file. Nothing in it is unpacked or executed here. */
+async function fetchArchive(input: Extract<ParsedInput, { kind: 'github' }>): Promise<string> {
   const ref = input.ref ?? 'HEAD';
+  const key = `${input.owner}/${input.repo}@${ref}`.toLowerCase();
+  await pruneArchives(3);
+  const cached = archives.get(key);
+  if (cached) return cached.file;
+
   const url = `https://codeload.github.com/${input.owner}/${input.repo}/tar.gz/${ref}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(120_000) });
   if (res.status === 404) throw new SkillError("We couldn't find that repo. Check the name, and make sure it's public.");
   if (!res.ok || !res.body) throw new SkillError(`GitHub answered ${res.status}. Please try again in a moment.`);
   if (Number(res.headers.get('content-length') ?? 0) > MAX_DOWNLOAD) throw new SkillError('That repo is too large for us to check.');
 
-  const buf = Buffer.from(await res.arrayBuffer());
-  if (buf.length > MAX_DOWNLOAD) throw new SkillError('That repo is too large for us to check.');
-  const { Readable } = await import('node:stream');
-  await run('tar', ['-xzf', '-', '--no-same-owner', '--no-same-permissions', '--strip-components=1', '-C', into], Readable.from(buf));
-  // A symlink in a hostile repo could point anywhere on this machine. Copying must never follow one.
-  await run('find', [into, '-type', 'l', '-delete']);
+  const dir = await mkdtemp(join(tmpdir(), 'si-repo-'));
+  const file = join(dir, 'repo.tgz');
+  let bytes = 0;
+  const limit = new Transform({
+    transform(chunk, _enc, done) {
+      bytes += chunk.length;
+      if (bytes > MAX_DOWNLOAD) done(new SkillError('That repo is too large for us to check.'));
+      else done(null, chunk);
+    },
+  });
+  try {
+    await pipeline(Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0]), limit, createWriteStream(file));
+  } catch (err) {
+    await rm(dir, { recursive: true, force: true });
+    throw err instanceof SkillError ? err : new SkillError("We couldn't download that repo. Please try again in a moment.");
+  }
+  archives.set(key, { file, at: Date.now() });
+  return file;
 }
 
-async function findSkillFiles(dir: string, depth = 0, out: string[] = []): Promise<string[]> {
-  if (depth > 6) return out;
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (entry.name === '.git' || entry.name === 'node_modules') continue;
-    const p = join(dir, entry.name);
-    if (entry.isDirectory()) await findSkillFiles(p, depth + 1, out);
-    else if (entry.isFile() && entry.name.toLowerCase() === 'skill.md') out.push(p);
+export interface ArchiveEntry { full: string; path: string; size: number; type: string }
+
+/** Reads `tar -tv` output. `path` is relative to the repo root, which GitHub wraps in one folder. */
+export function parseListing(listing: string): ArchiveEntry[] {
+  const out: ArchiveEntry[] = [];
+  for (const line of listing.split('\n')) {
+    const m = line.match(/^(.)\S*\s+\S+\s+(\d+)\s+\S+\s+\S+\s+(.+)$/);
+    if (!m) continue;
+    const full = m[3];
+    const slash = full.indexOf('/');
+    if (slash < 0 || full.split('/').includes('..')) continue;
+    out.push({ type: m[1], size: Number(m[2]), full, path: full.slice(slash + 1) });
   }
   return out;
+}
+
+/** Only regular files come out, so a symlink in a hostile repo can never point anywhere. */
+async function extract(archive: string, members: string[], into: string): Promise<void> {
+  const list = join(into, '.members');
+  await writeFile(list, members.join('\n'));
+  await capture('tar', ['-xzf', archive, '--no-same-owner', '--no-same-permissions', '--strip-components=1', '-C', into, '--verbatim-files-from', '-T', list]);
+  await rm(list, { force: true });
+}
+
+export interface SkillChoice { name: string; description: string }
+
+/** Raised for a repo holding many skills, so the person can pick one instead of retyping. */
+export class ChooseSkill extends SkillError {
+  choices: SkillChoice[];
+  total: number;
+  constructor(choices: SkillChoice[]) {
+    super(`That repo holds ${choices.length} skills. Pick the one you want to check.`);
+    this.choices = choices;
+    this.total = choices.length;
+  }
 }
 
 async function dirSize(dir: string): Promise<number> {
@@ -89,30 +156,64 @@ async function dirSize(dir: string): Promise<number> {
   return total;
 }
 
-async function pickSkillFile(root: string, input: Extract<ParsedInput, { kind: 'github' }>): Promise<string> {
-  const files = await findSkillFiles(root);
+const shorten = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text);
+
+const isSkillFile = (e: ArchiveEntry) =>
+  e.type === '-' && e.path.split('/').length <= 10 && /(^|\/)skill\.md$/i.test(e.path) && !/(^|\/)(node_modules|\.git)\//.test(e.path);
+const folderOf = (path: string) => (path.includes('/') ? dirname(path) : '');
+
+/** Mirrors of one skill are common, so the shallowest copy of each folder name stands for it. */
+function shallowestByName(files: ArchiveEntry[]): Map<string, ArchiveEntry> {
+  const byName = new Map<string, ArchiveEntry>();
+  for (const f of [...files].sort((a, b) => a.path.split('/').length - b.path.split('/').length || a.path.localeCompare(b.path))) {
+    const name = folderOf(f.path).split('/').pop()!;
+    if (name && !byName.has(name.toLowerCase())) byName.set(name.toLowerCase(), f);
+  }
+  return byName;
+}
+
+async function readIndex(archive: string, files: ArchiveEntry[], work: string): Promise<Map<ArchiveEntry, ReturnType<typeof parseSkillFile>>> {
+  const dir = join(work, '.index');
+  await mkdir(dir, { recursive: true });
+  await extract(archive, files.filter((f) => f.size < 1_000_000).map((f) => f.full), dir);
+  const parsed = new Map<ArchiveEntry, ReturnType<typeof parseSkillFile>>();
+  for (const f of files) {
+    const text = await readFile(join(dir, f.path), 'utf8').catch(() => null);
+    if (text !== null) parsed.set(f, parseSkillFile(text));
+  }
+  await rm(dir, { recursive: true, force: true });
+  return parsed;
+}
+
+async function pickSkillFile(archive: string, entries: ArchiveEntry[], input: Extract<ParsedInput, { kind: 'github' }>, work: string): Promise<ArchiveEntry> {
+  const files = entries.filter(isSkillFile);
   if (files.length === 0) throw new SkillError("That repo doesn't contain a SKILL.md file, so there's no skill to test.");
 
   if (input.path) {
-    const wanted = files.find((f) => relative(root, dirname(f)) === input.path);
+    const wanted = files.find((f) => folderOf(f.path) === input.path);
     if (wanted) return wanted;
     throw new SkillError(`We couldn't find a SKILL.md in ${input.path}.`);
   }
+  const byName = shallowestByName(files);
   if (input.skill) {
     const want = input.skill.toLowerCase();
-    for (const f of files) {
-      if (dirname(f).split('/').pop()?.toLowerCase() === want) return f;
-      if (parseSkillFile(await readFile(f, 'utf8')).name?.toLowerCase() === want) return f;
+    const direct = byName.get(want);
+    if (direct) return direct;
+    for (const [f, parsed] of await readIndex(archive, [...byName.values()], work)) {
+      if (parsed.name?.toLowerCase() === want) return f;
     }
     throw new SkillError(`That repo has no skill named "${input.skill}".`);
   }
-  if (files.length > 1) {
-    const rootFile = files.find((f) => dirname(f) === root);
-    if (rootFile) return rootFile;
-    const names = files.slice(0, 5).map((f) => dirname(f).split('/').pop()).join(', ');
-    throw new SkillError(`That repo has ${files.length} skills. Add --skill naming the one you want, such as: ${names}.`);
-  }
-  return files[0];
+  if (files.length === 1) return files[0];
+  const rootFile = files.find((f) => !f.path.includes('/'));
+  if (rootFile) return rootFile;
+
+  const index = await readIndex(archive, [...byName.values()], work);
+  const choices = [...byName.values()].map((f) => ({
+    name: folderOf(f.path).split('/').pop()!,
+    description: shorten(index.get(f)?.description ?? '', 160),
+  }));
+  throw new ChooseSkill(choices.sort((a, b) => a.name.localeCompare(b.name)).slice(0, MAX_CHOICES));
 }
 
 export interface LoadedSkill extends SkillInfo {
@@ -148,9 +249,16 @@ export async function loadSkill(input: ParsedInput): Promise<LoadedSkill> {
   const work = await mkdtemp(join(tmpdir(), 'si-skill-'));
   const cleanup = () => rm(work, { recursive: true, force: true });
   try {
-    await downloadRepo(input, work);
-    const file = await pickSkillFile(work, input);
-    return await load(file, `github.com/${input.owner}/${input.repo}`, false, false, cleanup);
+    const archive = await fetchArchive(input);
+    const entries = parseListing(await capture('tar', ['-tzvf', archive, '--quoting-style=literal']));
+    const chosen = await pickSkillFile(archive, entries, input, work);
+    const folder = folderOf(chosen.path);
+    const members = entries.filter((e) => e.type === '-' && (!folder || e.path.startsWith(`${folder}/`)));
+    if (members.reduce((n, e) => n + e.size, 0) > MAX_SKILL || members.length > MAX_SKILL_FILES) {
+      throw new SkillError('That skill is too large for us to check.');
+    }
+    await extract(archive, members.map((e) => e.full), work);
+    return await load(join(work, chosen.path), `github.com/${input.owner}/${input.repo}`, false, false, cleanup);
   } catch (err) {
     await cleanup();
     throw err;

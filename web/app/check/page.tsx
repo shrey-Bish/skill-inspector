@@ -3,41 +3,71 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getCheck, type CheckView } from '@/lib/api';
 import { Checking } from '@/components/Checking';
+import { PickSkill } from '@/components/PickSkill';
 import { CouldntCheck, ReportView } from '@/components/ReportView';
 import { Nav, primaryButton } from '@/components/ui';
 
-type View = { kind: 'loading' } | { kind: 'missing' } | { kind: 'live'; id: string } | { kind: 'final'; check: CheckView };
+type View =
+  | { kind: 'loading' }
+  | { kind: 'missing' }
+  | { kind: 'live'; id: string }
+  | { kind: 'run'; id: string }
+  | { kind: 'final'; check: CheckView };
 
 const isFinal = (c: CheckView) => c.status === 'done' || c.status === 'couldnt_check';
+
+function urlFor(id: string, extra = ''): string {
+  const record = new URLSearchParams(window.location.search).has('record') ? '&record=1' : '';
+  return `/check/?id=${id}${extra}${record}`;
+}
 
 export default function CheckPage() {
   const [view, setView] = useState<View>({ kind: 'loading' });
 
-  const showFinal = useCallback(async (id: string) => {
+  // Every screen comes from the address, so the browser's back and forward buttons work.
+  const route = useCallback(async () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) return setView({ kind: 'missing' });
+    if (params.get('view') === 'run') return setView({ kind: 'run', id });
     try {
-      setView({ kind: 'final', check: await getCheck(id) });
+      const check = await getCheck(id);
+      // A check you just started plays out even if it finished quickly. A shared link opens the report.
+      if (isFinal(check) && !params.has('live')) setView({ kind: 'final', check });
+      else setView({ kind: 'live', id });
     } catch {
       setView({ kind: 'missing' });
     }
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    if (!id) return setView({ kind: 'missing' });
-    getCheck(id)
-      .then((check) => {
-        // A check you just started plays out even if it finished quickly. A shared link opens the report.
-        if (isFinal(check) && !params.has('live')) setView({ kind: 'final', check });
-        else setView({ kind: 'live', id });
-      })
-      .catch(() => setView({ kind: 'missing' }));
-  }, []);
+    void route();
+    const onPop = () => void route();
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [route]);
+
+  const go = useCallback((href: string) => {
+    window.history.pushState(null, '', href);
+    window.scrollTo(0, 0);
+    void route();
+  }, [route]);
+
+  /** The live run becomes a stop in the history, so Back from the report lands on it. */
+  const finishLive = useCallback((id: string) => {
+    window.history.replaceState(null, '', urlFor(id, '&view=run'));
+    go(urlFor(id));
+  }, [go]);
 
   if (view.kind === 'loading') return <div className="min-h-dvh"><Nav /></div>;
-  if (view.kind === 'live') return <Checking id={view.id} onDone={() => void showFinal(view.id)} />;
+  if (view.kind === 'live') return <Checking key={`live-${view.id}`} id={view.id} onDone={() => finishLive(view.id)} />;
+  if (view.kind === 'run') return <Checking key={`run-${view.id}`} id={view.id} review onDone={() => go(urlFor(view.id))} />;
   if (view.kind === 'final') {
-    return view.check.status === 'done' && view.check.report ? <ReportView check={view.check} /> : <CouldntCheck check={view.check} />;
+    const { check } = view;
+    if (check.choices?.length) return <PickSkill check={check} />;
+    return check.status === 'done' && check.report
+      ? <ReportView check={check} onBack={() => go(urlFor(check.id, '&view=run'))} />
+      : <CouldntCheck check={check} />;
   }
   return (
     <div className="flex min-h-dvh flex-col">

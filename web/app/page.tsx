@@ -2,7 +2,36 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { getSamples, isRecording, startCheck, withMode, type Sample } from '@/lib/api';
-import { Nav, TestSampleChip } from '@/components/ui';
+import { Nav } from '@/components/ui';
+
+const REAL = [
+  { name: 'pdf', owner: 'anthropics', input: 'npx skills add anthropics/skills --skill pdf' },
+  { name: 'frontend-design', owner: 'anthropics', input: 'npx skills add anthropics/skills --skill frontend-design' },
+  { name: 'docx', owner: 'anthropics', input: 'npx skills add anthropics/skills --skill docx' },
+  { name: 'brainstorming', owner: 'obra', input: 'npx skills add obra/superpowers --skill brainstorming' },
+];
+
+function ChipRow({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="text-sm text-muted">{title}</div>
+      <div className="flex flex-wrap gap-2 md:gap-2.5">{children}</div>
+    </div>
+  );
+}
+
+function Chip({ title, disabled, onClick, children }: { title: string; disabled: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      disabled={disabled}
+      title={title}
+      onClick={onClick}
+      className="flex cursor-pointer items-center gap-2 rounded-full border border-[#dcded9] bg-white px-4 py-[9px] text-[15px] font-medium transition-colors duration-300 hover:border-accent disabled:cursor-wait"
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -41,10 +70,14 @@ export default function Home() {
     }
   };
 
+  const run = (value: string) => { setInput(value); void start(value); };
+  const clean = samples.filter((c) => !c.testSample);
+  const bad = samples.filter((c) => c.testSample);
+
   return (
     <div className="si-fade flex min-h-dvh flex-col">
       <Nav />
-      <main className="flex flex-1 justify-center px-5 pb-20 pt-[clamp(56px,14vh,150px)] md:px-6">
+      <main className="flex flex-1 justify-center px-5 pb-20 pt-[clamp(48px,10vh,110px)] md:px-6">
         <div className="flex w-full max-w-[760px] flex-col gap-6 md:gap-7">
           <div className="flex flex-col gap-3 md:gap-3.5">
             <h1 className="text-[34px] font-semibold leading-10 tracking-[-0.02em] [text-wrap:balance] md:text-[52px] md:leading-[58px] md:tracking-[-0.025em]">Check a skill before you install it.</h1>
@@ -77,24 +110,25 @@ export default function Home() {
             {error && <p id="skill-error" role="alert" className="text-[15px] leading-[22px] text-red-text">{error}</p>}
           </form>
 
-          {samples.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <div className="text-sm text-muted">Or try an example</div>
-              <div className="flex flex-wrap gap-2 md:gap-2.5">
-                {samples.map((s) => (
-                  <button
-                    key={s.id}
-                    disabled={busy}
-                    title={s.description}
-                    onClick={() => { setInput(`sample:${s.id}`); void start(`sample:${s.id}`); }}
-                    className={`flex cursor-pointer items-center gap-2.5 rounded-full border border-[#dcded9] bg-white text-[15px] font-medium transition-colors duration-300 hover:border-accent disabled:cursor-wait ${s.testSample ? 'py-[5px] pl-4 pr-1.5' : 'px-4 py-[9px]'}`}
-                  >
-                    {s.name}{s.testSample && <TestSampleChip />}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="flex flex-col gap-4">
+            {clean.length > 0 && (
+              <ChipRow title="Or try an example">
+                {clean.map((c) => <Chip key={c.id} disabled={busy} title={c.description} onClick={() => run(`sample:${c.id}`)}>{c.name}</Chip>)}
+              </ChipRow>
+            )}
+            {bad.length > 0 && (
+              <ChipRow title="Built-in test samples, which misbehave on purpose">
+                {bad.map((c) => <Chip key={c.id} disabled={busy} title={c.description} onClick={() => run(`sample:${c.id}`)}>{c.name}</Chip>)}
+              </ChipRow>
+            )}
+            <ChipRow title="Real skills from GitHub">
+              {REAL.map((r) => (
+                <Chip key={r.input} disabled={busy} title={r.input} onClick={() => run(r.input)}>
+                  {r.name}<span className="font-normal text-soft">{r.owner}</span>
+                </Chip>
+              ))}
+            </ChipRow>
+          </div>
 
           <div className="flex items-start gap-2.5 pt-1.5 text-[15px] leading-[22px] text-muted md:items-center">
             <span className="mt-1 box-border flex size-3.5 flex-none items-center justify-center rounded border-[1.5px] border-accent md:mt-0"><span className="size-1 rounded-[1px] bg-accent" /></span>

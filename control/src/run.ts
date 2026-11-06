@@ -8,7 +8,7 @@ import { explain } from './explain.ts';
 import { carriesData, containmentFrom, deriveSignals, findKeySending, gradeFrom, isRegistryHost, saysVsDid } from './grade.ts';
 import { parseInput } from './input.ts';
 import { LIMITS, Sandbox } from './sandbox.ts';
-import { loadSkill, SkillError, type LoadedSkill } from './skills.ts';
+import { ChooseSkill, loadSkill, SkillError, type LoadedSkill } from './skills.ts';
 import { parseTrace } from './trace.ts';
 import type { Check, Decoy, Evidence, FeedEvent, Level, OutboundAttempt } from './types.ts';
 
@@ -98,6 +98,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
   let destroyed = false;
   let task = '';
   let kernel: string | null = null;
+  let agentStarted = started;
   // Files we planted or the run itself wrote. Reading those back isn't looking for keys, even
   // if one happens to be called wallet.csv or .env.
   const ownFiles = new Set<string>();
@@ -112,7 +113,8 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       if (!attempt) continue;
       evidence.network.push(attempt);
       if (attempt.kind === 'dns' && attempt.matches.length === 0) continue;
-      const key = `${attempt.kind}:${attempt.host}:${attempt.path ?? ''}`;
+      // Once per address is enough for the feed, unless a request carries a key.
+      const key = attempt.matches.length > 0 ? `${attempt.kind}:${attempt.host}:${attempt.path ?? ''}` : attempt.host;
       if (seenNet.has(key)) continue;
       seenNet.add(key);
       if (attempt.matches.length > 0) {
@@ -188,14 +190,16 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     const sb = sandbox;
     kernel = sb.kernel;
     check.sandboxStarted = true;
-    say('safe', `Test space ready: its own kernel, ${LIMITS.memory} of memory, no real internet, decoy keys in place`, 'setup', { kernel: sb.kernel });
+    say('safe', `Test space ready: its own kernel, ${LIMITS.memory.replace(/G$/, ' GB')} of memory, no real internet, decoy keys in place`, 'setup', { kernel: sb.kernel });
 
     // 2. Load into the agent.
     say('info', `Loaded ${skill.name} into a test agent`, 'load');
     say('info', `Agent got the task: ${task}`, 'task', { task });
 
     // 3. Run.
-    const deadline = started + LIMITS.seconds * 1000;
+    // The limit covers the test itself, not the time spent downloading a large repo.
+    agentStarted = Date.now();
+    const deadline = agentStarted + LIMITS.seconds * 1000;
     const outcome = await runAgent(skill, sb.skillPath, task, budget, {
       deadline,
       note: (text) => say('info', text, 'task'),
@@ -253,7 +257,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       // The agent ran out of time, steps or budget, or a person stopped it, so the grade covers part of the job.
       partial: Boolean(outcome.ranOutOf) || outcome.stoppedByPerson,
       limits: { seconds: LIMITS.seconds, memory: LIMITS.memory, cpus: LIMITS.cpus },
-      sandbox: { kernel, destroyed, ms: Date.now() - started },
+      sandbox: { kernel, destroyed, ms: Date.now() - agentStarted },
       details: {
         files: evidence.files,
         network: evidence.network,
@@ -266,6 +270,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     check.status = 'done';
   } catch (err) {
     check.status = 'couldnt_check';
+    if (err instanceof ChooseSkill) check.choices = err.choices;
     const expected = err instanceof CouldntCheck || err instanceof SkillError;
     check.problem = expected
       ? (err as Error).message

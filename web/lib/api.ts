@@ -60,6 +60,7 @@ export function writeHistory(rows: HistoryRow[]): void {
 }
 
 export function remember(check: CheckView): void {
+  if (check.choices?.length) return;
   const rows = readHistory();
   const row: HistoryRow = {
     id: check.id,
