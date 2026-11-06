@@ -47,6 +47,24 @@ export function decoyFiles(decoys: Decoy[]): Record<string, string> {
 const B64_TOKEN = /[A-Za-z0-9+/_-]{16,}={0,2}/g;
 const HEX_TOKEN = /\b(?:[0-9a-fA-F]{2}){8,}\b/g;
 
+/** RFC 4648 base32, the usual alphabet for smuggling data through DNS names. */
+function decodeBase32(s: string): string {
+  let bits = 0;
+  let value = 0;
+  let out = '';
+  for (const ch of s.toUpperCase().replace(/=+$/, '')) {
+    const i = B32.indexOf(ch);
+    if (i < 0) return '';
+    value = (value << 5) | i;
+    bits += 5;
+    if (bits >= 8) {
+      bits -= 8;
+      out += String.fromCharCode((value >> bits) & 0xff);
+    }
+  }
+  return out;
+}
+
 function safeUrlDecode(s: string): string {
   try {
     return decodeURIComponent(s.replace(/\+/g, ' '));
@@ -74,21 +92,30 @@ export function scanForDecoys(text: string, decoys: Decoy[], isDnsName = false):
     decoded: Buffer.from(t, 'hex').toString('latin1'),
   }));
   const dnsJoined = isDnsName ? text.split('.').join('') : '';
+  if (isDnsName) {
+    // Data in a DNS name is split across labels, so decode the name with the dots removed.
+    for (const t of dnsJoined.match(/(?:[0-9a-fA-F]{2}){8,}/g) ?? []) decodedHex.push({ token: text, decoded: Buffer.from(t, 'hex').toString('latin1') });
+    for (const t of dnsJoined.match(/[A-Za-z2-7]{16,}/g) ?? []) decodedB64.push({ token: text, decoded: decodeBase32(t) });
+    for (const t of dnsJoined.match(B64_TOKEN) ?? []) decodedB64.push({ token: text, decoded: Buffer.from(t, 'base64').toString('latin1') });
+  }
 
   for (const d of decoys) {
     const lower = d.value.toLowerCase();
+    const reversed = [...d.value].reverse().join('');
+    // Layered disguises, such as reversing a key and then base64-encoding it.
+    const hidden = (x: { decoded: string }) => x.decoded.includes(d.value) || x.decoded.includes(reversed);
     if (text.includes(d.value)) {
       add(d, 'plain', d.value);
     } else if (urlDecoded.includes(d.value)) {
       add(d, 'url', d.value);
-    } else if (text.includes([...d.value].reverse().join(''))) {
-      add(d, 'reversed', [...d.value].reverse().join(''));
+    } else if (text.includes(reversed)) {
+      add(d, 'reversed', reversed);
     } else if (isDnsName && dnsJoined.toLowerCase().includes(lower)) {
       add(d, 'dns', text);
     } else {
-      const b = decodedB64.find((x) => x.decoded.includes(d.value));
+      const b = decodedB64.find(hidden);
       if (b) add(d, 'base64', b.token);
-      const h = decodedHex.find((x) => x.decoded.includes(d.value));
+      const h = decodedHex.find(hidden);
       if (h) add(d, 'hex', h.token);
     }
   }

@@ -46,6 +46,8 @@ export interface OutboundAttempt {
   body?: string;
   matches: DecoyMatch[];
   registry?: boolean;
+  /** A custom header long enough to carry data, the way a request body would. */
+  bulkyHeader?: boolean;
 }
 
 export interface CommandRecord {
@@ -64,6 +66,8 @@ export interface Evidence {
   network: OutboundAttempt[];
   hiddenText: string[];
   refusedInstructions: string[];
+  /** Lines in the skill's text that send a place keys are kept to somewhere else. */
+  keySendingText: string[];
 }
 
 export interface Signal {
@@ -92,6 +96,7 @@ export interface Report {
   saysVsDid: SaysVsDid;
   containment: Containment;
   task: string;
+  partial: boolean;
   limits: { seconds: number; memory: string; cpus: number };
   sandbox: { kernel: string | null; destroyed: boolean; ms: number };
   details: {

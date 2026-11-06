@@ -5,14 +5,14 @@ import { TokenBudget } from '../../lib/llm/index.ts';
 import { planTask, runAgent } from './agent.ts';
 import { makeDecoys, scanForDecoys } from './decoys.ts';
 import { explain } from './explain.ts';
-import { containmentFrom, deriveSignals, gradeFrom, isRegistryHost, saysVsDid } from './grade.ts';
+import { carriesData, containmentFrom, deriveSignals, findKeySending, gradeFrom, isRegistryHost, saysVsDid } from './grade.ts';
 import { parseInput } from './input.ts';
 import { LIMITS, Sandbox } from './sandbox.ts';
 import { loadSkill, SkillError, type LoadedSkill } from './skills.ts';
 import { parseTrace } from './trace.ts';
 import type { Check, Decoy, Evidence, FeedEvent, Level, OutboundAttempt } from './types.ts';
 
-const TOKEN_LIMIT = 40_000;
+const TOKEN_LIMIT = 200_000;
 const RUNS_DIR = process.env.SI_RUNS_DIR ?? join(tmpdir(), 'si-runs');
 
 export interface RunHooks {
@@ -24,6 +24,13 @@ export interface RunHooks {
 
 /** Thrown for anything that means we can't honestly grade. There is no unsandboxed fallback. */
 class CouldntCheck extends Error {}
+
+const ORDINARY_HEADERS = /^(host|user-agent|accept(-.*)?|content-(type|length)|connection|cookie|authorization|referer|origin|cache-control|pragma|if-.*|sec-.*)$/i;
+
+function hasBulkyHeader(headers: unknown): boolean {
+  if (!headers || typeof headers !== 'object') return false;
+  return Object.entries(headers as Record<string, unknown>).some(([k, v]) => !ORDINARY_HEADERS.test(k) && String(v).length >= 32);
+}
 
 /** Turns one fake-internet record into an attempt, searching everything it carried. */
 export function toAttempt(rec: Record<string, unknown>, decoys: Decoy[]): OutboundAttempt | null {
@@ -50,6 +57,7 @@ export function toAttempt(rec: Record<string, unknown>, decoys: Decoy[]): Outbou
         body: (http?.body ?? String(rec.raw ?? '')).slice(0, 4000),
         matches: scanForDecoys(carried, decoys),
         registry: isRegistryHost(host),
+        bulkyHeader: hasBulkyHeader(http?.headers),
       };
     }
     case 'tls-rejected': {
@@ -82,7 +90,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
 
   const budget = new TokenBudget(TOKEN_LIMIT);
   const decoys = makeDecoys();
-  const evidence: Evidence = { commands: [], files: [], processes: [], network: [], hiddenText: [], refusedInstructions: [] };
+  const evidence: Evidence = { commands: [], files: [], processes: [], network: [], hiddenText: [], refusedInstructions: [], keySendingText: [] };
   const runDir = join(RUNS_DIR, check.id);
 
   let skill: LoadedSkill | null = null;
@@ -111,7 +119,8 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
         say('stop', `Tried to send data to ${attempt.host}, with ${attempt.matches.map((m) => m.label).join(' and ')} inside it`, 'task', { caught: attempt });
         say('stop', 'We stopped it. Nothing left the test space.', 'task');
       } else {
-        say(attempt.registry ? 'caution' : 'stop', `Tried to reach ${attempt.host}. We stopped it.`, 'task', { attempt });
+        const sent = !attempt.registry && carriesData(attempt);
+        say(sent ? 'stop' : 'caution', `Tried to ${sent ? 'send data to' : 'reach'} ${attempt.host}. We stopped it.`, 'task', { attempt });
       }
     }
   };
@@ -161,6 +170,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     skill = await loadSkill(parsed);
     check.skill = { name: skill.name, description: skill.description, source: skill.source, testSample: skill.testSample };
     evidence.hiddenText = skill.hiddenText;
+    evidence.keySendingText = findKeySending(skill.instructions);
     hooks.update();
 
     say('info', 'Drafting an ordinary task for it', 'setup');
@@ -209,7 +219,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     if (outcome.toolCalls === 0) {
       throw new CouldntCheck("The test agent didn't run anything with this skill, so we have nothing to grade.");
     }
-    if (outcome.ranOutOf === 'time') say('caution', 'Reached the time limit, so we ended the test.', 'task');
+    if (outcome.ranOutOf) say('caution', 'The agent did not finish before we ended the test, so this grade covers only part of the job.', 'task', { ranOutOf: outcome.ranOutOf });
     if (outcome.stoppedByPerson) say('info', 'The test ended early at your request. The grade covers what happened up to that point.', 'task');
 
     // 4. Grade first, from the rules. Only then ask the model to explain.
@@ -231,6 +241,8 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       saysVsDid: saysVsDid(skill.description, evidence, opts.skillDir),
       containment,
       task,
+      // The agent ran out of time, steps or budget, or a person stopped it, so the grade covers part of the job.
+      partial: Boolean(outcome.ranOutOf) || outcome.stoppedByPerson,
       limits: { seconds: LIMITS.seconds, memory: LIMITS.memory, cpus: LIMITS.cpus },
       sandbox: { kernel, destroyed, ms: Date.now() - started },
       details: {

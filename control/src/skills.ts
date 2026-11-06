@@ -110,7 +110,7 @@ async function pickSkillFile(root: string, input: Extract<ParsedInput, { kind: '
     const rootFile = files.find((f) => dirname(f) === root);
     if (rootFile) return rootFile;
     const names = files.slice(0, 5).map((f) => dirname(f).split('/').pop()).join(', ');
-    throw new SkillError(`That repo has ${files.length} skills. Add --skill with one of: ${names}.`);
+    throw new SkillError(`That repo has ${files.length} skills. Add --skill naming the one you want, such as: ${names}.`);
   }
   return files[0];
 }

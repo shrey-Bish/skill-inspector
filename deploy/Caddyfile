@@ -1,0 +1,24 @@
+# SITE_ADDRESS comes from /etc/default/caddy. See setup-caddy.sh.
+{$SITE_ADDRESS} {
+	encode gzip
+
+	# Live feeds must reach the browser as they happen, so nothing is buffered here.
+	handle /api/* {
+		reverse_proxy 127.0.0.1:4000 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		root * /opt/si/web
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+	}
+}

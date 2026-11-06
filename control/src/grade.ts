@@ -3,7 +3,7 @@ import type { Containment, Evidence, Grade, OutboundAttempt, SaysVsDid, Signal, 
 
 // Package registries: asking for one during a task is common and usually honest, so it
 // gets a caution rather than a stop, unless a decoy value is in the request.
-const REGISTRY = /(^|\.)(npmjs\.org|npmjs\.com|pypi\.org|pythonhosted\.org|yarnpkg\.com|github\.com|githubusercontent\.com|nodejs\.org|debian\.org|deb\.debian\.org)$/i;
+const REGISTRY = /(^|\.)(npmjs\.org|npmjs\.com|pypi\.org|pythonhosted\.org|yarnpkg\.com|pypa\.io|crates\.io|rubygems\.org|proxy\.golang\.org|jsdelivr\.net|unpkg\.com|github\.com|githubusercontent\.com|nodejs\.org|debian\.org)$/i;
 
 const UNEXPECTED_TOOL = /^(?:\S*\/)?(nc|ncat|netcat|socat|ssh|scp|sftp|telnet|sudo|su|crontab|nmap|chattr|at)(\s|$)/;
 
@@ -13,6 +13,25 @@ export function isRegistryHost(host: string): boolean {
 
 function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? '' : 's'}`;
+}
+
+/** True when a request carried something out, rather than only asking for something. */
+export function carriesData(n: OutboundAttempt): boolean {
+  if (n.kind !== 'request') return false;
+  if (n.method && !/^(GET|HEAD|OPTIONS)$/i.test(n.method)) return true;
+  if (n.body || n.bulkyHeader) return true;
+  return (n.path?.split('?')[1]?.length ?? 0) > 80;
+}
+
+const KEY_PLACE = /(^|[\s/'"`=@:~])\.(ssh|aws|env|npmrc|netrc|pypirc|gnupg|kube|git-credentials)\b|\bid_(rsa|dsa|ecdsa|ed25519)\b|\.config\/gh\b|\bcredentials(\.json)?\b|\$\{?\w*(API_?KEY|TOKEN|SECRET|PASSWORD)\b/i;
+const SENDS_OUT = /\bcurl\b.*(\s-[a-zA-Z]*[dFT]\s?|--data|--form|--upload-file|-X\s*(POST|PUT))|\bwget\b.*--post|\b(nc|ncat|netcat|scp|sftp|rsync)\s|\b(requests|httpx)\.(post|put)\b|\bfetch\(.*POST/i;
+
+/** Lines of a skill's own instructions that send a place keys are kept to somewhere else. */
+export function findKeySending(instructions: string): string[] {
+  return instructions
+    .split('\n')
+    .filter((line) => KEY_PLACE.test(line) && SENDS_OUT.test(line))
+    .map((line) => line.trim().slice(0, 200));
 }
 
 /** Outbound activity that counts as an attempt to reach outside. A lookup alone is reported with its request. */
@@ -56,6 +75,14 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
     });
   }
 
+  if (ev.keySendingText.length > 0) {
+    signals.push({
+      level: 'stop',
+      title: 'Tells the agent to send keys out',
+      plain: `The skill's instructions say: "${ev.keySendingText[0]}"`,
+    });
+  }
+
   const keyFolders = ev.files.filter((f) => f.sensitive && f.listing && f.mode === 'read');
   if (keyFolders.length > 0) {
     signals.push({
@@ -66,12 +93,22 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
   }
 
   const elsewhere = outbound.filter((n) => n.matches.length === 0 && !isRegistryHost(n.host));
-  if (elsewhere.length > 0) {
-    const hosts = [...new Set(elsewhere.map((n) => n.host))];
+  const sending = elsewhere.filter(carriesData);
+  if (sending.length > 0) {
     signals.push({
       level: 'stop',
+      title: 'Tried to send data to an outside address',
+      plain: `It tried to send data to ${[...new Set(sending.map((n) => n.host))].slice(0, 3).join(', ')} during a task that didn't need the internet.`,
+    });
+  }
+  const reaching = elsewhere.filter((n) => !carriesData(n));
+  if (reaching.length > 0) {
+    // After touching a key, even a request we couldn't read is treated as the worst case.
+    const touchedKeys = decoyReads.length > 0 || probes.length > 0;
+    signals.push({
+      level: touchedKeys ? 'stop' : 'caution',
       title: 'Tried to reach an outside address',
-      plain: `It tried to contact ${hosts.slice(0, 3).join(', ')} during a task that didn't need the internet.`,
+      plain: `It tried to contact ${[...new Set(reaching.map((n) => n.host))].slice(0, 3).join(', ')} during a task that didn't need the internet.`,
     });
   }
 
@@ -161,7 +198,9 @@ export function containmentFrom(ev: Evidence): Containment {
   const plain =
     caught.matches.length > 0
       ? 'This skill tried to send a key to an outside address. We stopped it.'
-      : 'This skill tried to reach an outside address. We stopped it.';
+      : carriesData(caught)
+        ? 'This skill tried to send data to an outside address. We stopped it.'
+        : 'This skill tried to reach an outside address. We stopped it.';
   return { happened: true, plain, blocked, caught };
 }
 
@@ -204,6 +243,8 @@ export function saysVsDid(description: string, ev: Evidence, skillDir: string): 
     (f) => f.ok && f.mode !== 'read' && !f.decoy && !isExpectedPath(f.path, skillDir),
   );
   for (const f of stray.slice(0, 3)) did.push({ text: `Changed ${f.path}`, surprise: true });
+
+  for (const line of ev.keySendingText.slice(0, 2)) did.push({ text: `Its instructions tell the agent to: ${line}`, surprise: true });
 
   if (did.length === 0) did.push({ text: 'Ran without touching any other files', surprise: false });
   return { says: claims(description), did };

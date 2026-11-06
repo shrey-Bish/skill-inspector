@@ -6,7 +6,7 @@ import type { Check } from '../src/types.ts';
 
 const check: Check = { id: randomBytes(6).toString('hex'), input: process.argv[2], status: 'queued', createdAt: new Date().toISOString(), feed: [] };
 await runCheck(check, {
-  emit: (e) => console.log(`[${e.step ?? '-'}] ${e.level.padEnd(7)} ${e.text}`),
+  emit: (e) => console.log(`[${e.step ?? '-'}] ${e.level.padEnd(7)} ${e.text}${(e.data as { ranOutOf?: string })?.ranOutOf ? ` (${(e.data as { ranOutOf: string }).ranOutOf})` : ''}`),
   update: () => {},
   decide: async () => false,
 });

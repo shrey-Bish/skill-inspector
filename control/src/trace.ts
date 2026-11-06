@@ -70,6 +70,9 @@ export interface ParsedTrace {
   processes: string[];
 }
 
+// Python and others keep short-lived semaphores here. Removing them changes nothing of yours.
+const SCRATCH = /^\/dev\/shm\//;
+
 export function parseTrace(log: string, decoys: Decoy[]): ParsedTrace {
   // One file can hold several decoys, such as the two AWS keys.
   const decoyByPath = new Map<string, string>();
@@ -124,11 +127,15 @@ export function parseTrace(log: string, decoys: Decoy[]): ParsedTrace {
     }
     const del = line.match(UNLINK);
     if (del) {
-      if (Number(del[3]) >= 0) note({ path: normalize(unescape(del[2]), del[1] || '/workspace'), mode: 'delete', ok: true });
+      const path = normalize(unescape(del[2]), del[1] || '/workspace');
+      if (Number(del[3]) >= 0 && !SCRATCH.test(path)) note({ path, mode: 'delete', ok: true });
       continue;
     }
     const ren = line.match(RENAME);
-    if (ren && Number(ren[5]) >= 0) note({ path: normalize(unescape(ren[4]), ren[3] || '/workspace'), mode: 'write', ok: true });
+    if (ren && Number(ren[5]) >= 0) {
+      const path = normalize(unescape(ren[4]), ren[3] || '/workspace');
+      if (!SCRATCH.test(path)) note({ path, mode: 'write', ok: true });
+    }
   }
   return { files: [...files.values()], processes };
 }

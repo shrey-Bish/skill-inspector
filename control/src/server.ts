@@ -15,6 +15,8 @@ const PORT = Number(process.env.PORT ?? 4000);
 const MAX_QUEUE = 8;
 const PER_IP_PER_HOUR = 12;
 const DECISION_WAIT_MS = 30_000;
+// Every check spends inference credit, so a public link gets an overall ceiling too.
+const PER_DAY = Number(process.env.SI_CHECKS_PER_DAY ?? 300);
 
 mkdirSync(DATA, { recursive: true });
 
@@ -24,6 +26,7 @@ const decisions = new Map<string, (allow: boolean) => void>();
 const queue: string[] = [];
 let running: string | null = null;
 const recentByIp = new Map<string, number[]>();
+let startedToday: number[] = [];
 
 function save(check: Check): void {
   writeFileSync(join(DATA, `${check.id}.json`), JSON.stringify(check));
@@ -35,7 +38,13 @@ function load(id: string): Check | null {
   const file = join(DATA, `${id}.json`);
   if (!existsSync(file)) return null;
   try {
-    return JSON.parse(readFileSync(file, 'utf8')) as Check;
+    const check = JSON.parse(readFileSync(file, 'utf8')) as Check;
+    // Not in memory but unfinished means the server restarted during this check.
+    if (check.status === 'queued' || check.status === 'running') {
+      check.status = 'couldnt_check';
+      check.problem = 'Our server restarted during this check, so we have no grade for it. Please run it again.';
+    }
+    return check;
   } catch {
     return null;
   }
@@ -157,9 +166,12 @@ const server = createServer(async (req, res) => {
       if (typeof input !== 'string' || !parseInput(input)) {
         return send(res, 400, { error: "We couldn't read that as a skill. Paste an install command like `npx skills add owner/repo --skill name`, or a GitHub link." });
       }
+      startedToday = startedToday.filter((t) => Date.now() - t < 86_400_000);
+      if (startedToday.length >= PER_DAY) return send(res, 429, { error: "We've reached today's limit of checks. Please come back tomorrow." });
       if (queue.length >= MAX_QUEUE) return send(res, 429, { error: 'A lot of checks are waiting right now. Please try again in a few minutes.' });
       if (!allowed(clientIp(req))) return send(res, 429, { error: "You've run a lot of checks this hour. Please try again a little later." });
 
+      startedToday.push(Date.now());
       const check: Check = {
         id: randomBytes(6).toString('hex'),
         input: input.trim(),

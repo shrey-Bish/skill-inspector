@@ -1,0 +1,30 @@
+[Unit]
+Description=Skill Inspector control server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=si
+Group=si
+SupplementaryGroups=kvm
+WorkingDirectory=/opt/si/app
+Environment=PATH=/var/lib/si/.microsandbox/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HOME=/var/lib/si
+Environment=SI_DATA_DIR=/var/lib/si/checks
+Environment=SI_RUNS_DIR=/var/lib/si/runs
+EnvironmentFile=/etc/si/env
+ExecStart=/usr/local/bin/node control/src/server.ts
+Restart=on-failure
+RestartSec=3
+# The server fetches untrusted repos, so it gets as little of this machine as possible.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/si
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target
