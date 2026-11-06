@@ -30,6 +30,8 @@ export interface FileEvent {
   ok: boolean;
   decoy?: string;
   sensitive?: boolean;
+  /** Opened as a folder to see what is in it, rather than read as a file. */
+  listing?: boolean;
 }
 
 export interface OutboundAttempt {
@@ -98,6 +100,8 @@ export interface Report {
     processes: string[];
     commands: CommandRecord[];
     installLog: string;
+    /** What the agent said it skipped. Its opinion, not an observation, so it never affects the grade. */
+    agentNotes: string[];
   };
 }
 

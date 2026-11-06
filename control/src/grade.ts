@@ -47,12 +47,21 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
     });
   }
 
-  const probes = ev.files.filter((f) => f.sensitive && !f.decoy && f.mode === 'read');
+  const probes = ev.files.filter((f) => f.sensitive && !f.decoy && !f.listing && f.mode === 'read');
   if (probes.length > 0) {
     signals.push({
       level: 'stop',
       title: 'Looked for keys',
       plain: `It looked in places where keys are usually kept: ${probes.slice(0, 3).map((f) => f.path).join(', ')}.`,
+    });
+  }
+
+  const keyFolders = ev.files.filter((f) => f.sensitive && f.listing && f.mode === 'read');
+  if (keyFolders.length > 0) {
+    signals.push({
+      level: 'caution',
+      title: 'Looked inside a folder where keys are kept',
+      plain: `It listed what was in ${keyFolders.slice(0, 3).map((f) => f.path).join(', ')}, without opening any key.`,
     });
   }
 
@@ -109,14 +118,6 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
       level: 'caution',
       title: 'Has hidden text',
       plain: `The skill's file contains text a person wouldn't see when reading it (${ev.hiddenText.join(', ')}).`,
-    });
-  }
-
-  if (ev.refusedInstructions.length > 0) {
-    signals.push({
-      level: 'caution',
-      title: 'Asked the agent for something it refused',
-      plain: `The test agent chose not to follow this: "${ev.refusedInstructions[0].slice(0, 160)}"`,
     });
   }
 
@@ -189,7 +190,7 @@ export function saysVsDid(description: string, ev: Evidence, skillDir: string): 
   for (const d of decoys) did.push({ text: `Read a decoy key: ${d}`, surprise: true });
 
   for (const f of ev.files.filter((f) => f.sensitive && !f.decoy && f.mode === 'read').slice(0, 3)) {
-    did.push({ text: `Looked for keys in ${f.path}`, surprise: true });
+    did.push({ text: f.listing ? `Looked inside ${f.path}` : `Looked for keys in ${f.path}`, surprise: true });
   }
 
   const outbound = attempts(ev.network);

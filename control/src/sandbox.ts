@@ -177,6 +177,11 @@ export class Sandbox {
     this.kernel = prepared.stdout.trim().split('\n').pop() ?? null;
   }
 
+  /** False until the microVM exists, so we never claim to have destroyed one we never made. */
+  get exists(): boolean {
+    return this.created;
+  }
+
   sinkAlive(): boolean {
     return this.sink?.alive() ?? false;
   }

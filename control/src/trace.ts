@@ -71,8 +71,13 @@ export interface ParsedTrace {
 }
 
 export function parseTrace(log: string, decoys: Decoy[]): ParsedTrace {
+  // One file can hold several decoys, such as the two AWS keys.
   const decoyByPath = new Map<string, string>();
-  for (const d of decoys) if (d.path) decoyByPath.set(d.path, d.label);
+  for (const d of decoys) {
+    if (!d.path) continue;
+    const had = decoyByPath.get(d.path);
+    decoyByPath.set(d.path, had ? `${had} and ${d.label}` : d.label);
+  }
 
   const files = new Map<string, FileEvent>();
   const processes: string[] = [];
@@ -91,13 +96,17 @@ export function parseTrace(log: string, decoys: Decoy[]): ParsedTrace {
       const ok = Number(ret) >= 0;
       const path = realPath && !realPath.includes(':[') ? normalize(unescape(realPath)) : normalize(unescape(asked), dirFd || '/workspace');
       const writing = /O_WRONLY|O_RDWR|O_CREAT|O_TRUNC|O_APPEND/.test(flags);
+      const listing = /O_DIRECTORY/.test(flags);
+      // find and grep -r open each folder through its parent as they walk. That shows only
+      // names, and any file they then read is recorded on its own line below.
+      if (listing && /\bopenat\(\d/.test(line)) continue;
       const decoy = decoyByPath.get(path);
       const sensitive = SENSITIVE.test(path);
       // A failed read of an ordinary path is just a program looking around. Writes that
       // could make something run again later are never noise, even in a noisy location.
       const persistent = writing && PERSISTENCE.test(path);
       if (!decoy && !sensitive && !persistent && (NOISE.test(path) || !ok)) continue;
-      note({ path, mode: writing ? 'write' : 'read', ok, decoy, sensitive: sensitive || undefined });
+      note({ path, mode: writing ? 'write' : 'read', ok, decoy, sensitive: sensitive || undefined, listing: listing || undefined });
       continue;
     }
     const exec = line.match(EXEC);

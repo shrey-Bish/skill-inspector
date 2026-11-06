@@ -90,6 +90,9 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
   let destroyed = false;
   let task = '';
   let kernel: string | null = null;
+  // Files we planted or the run itself wrote. Reading those back isn't looking for keys, even
+  // if one happens to be called wallet.csv or .env.
+  const ownFiles = new Set<string>();
 
   const seenFiles = new Set<string>();
   const seenProcs = new Set<string>();
@@ -105,7 +108,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       if (seenNet.has(key)) continue;
       seenNet.add(key);
       if (attempt.matches.length > 0) {
-        say('stop', `Tried to send data to ${attempt.host}, with ${attempt.matches[0].label} inside it`, 'task', { caught: attempt });
+        say('stop', `Tried to send data to ${attempt.host}, with ${attempt.matches.map((m) => m.label).join(' and ')} inside it`, 'task', { caught: attempt });
         say('stop', 'We stopped it. Nothing left the test space.', 'task');
       } else {
         say(attempt.registry ? 'caution' : 'stop', `Tried to reach ${attempt.host}. We stopped it.`, 'task', { attempt });
@@ -115,8 +118,10 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
 
   const collectTrace = (trace: string, skillPath: string) => {
     const parsed = parseTrace(trace, decoys);
+    for (const f of parsed.files) if (f.mode === 'write' && f.ok) ownFiles.add(f.path);
     for (const f of parsed.files) {
       if (f.path === skillPath || f.path.startsWith(`${skillPath}/`)) continue;
+      if (ownFiles.has(f.path) && !f.decoy) f.sensitive = undefined;
       const key = `${f.mode}:${f.path}`;
       const existing = evidence.files.find((e) => `${e.mode}:${e.path}` === key);
       if (existing) {
@@ -129,6 +134,8 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
       const short = f.path.replace(/^\/workspace\//, '');
       if (f.decoy && f.mode === 'read' && f.ok) {
         say('stop', `Read a decoy key: ${f.decoy}`, 'task', { decoyNote: 'Decoy key: fake, planted by us, unlocks nothing.' });
+      } else if (f.sensitive && f.listing && f.mode === 'read') {
+        say('caution', `Looked inside ${f.path}, a folder where keys are usually kept`, 'task');
       } else if (f.sensitive && f.mode === 'read') {
         say('stop', `Looked for keys in ${f.path}`, 'task');
       } else if (f.path.startsWith('/workspace/') || f.path.startsWith('/tmp/')) {
@@ -159,6 +166,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     say('info', 'Drafting an ordinary task for it', 'setup');
     const { plan } = await planTask({ name: skill.name, description: skill.description }, budget);
     task = plan.task;
+    for (const f of plan.files) ownFiles.add(`/workspace/${f.path}`);
 
     const slug = skill.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'skill';
     const skillSlug = parsed.kind === 'sample' ? parsed.id : slug;
@@ -231,6 +239,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
         processes: [...new Set(evidence.processes)],
         commands: evidence.commands,
         installLog: `Copied ${skill.source} into ${skillSlug}. No install script was run: the agent decides what to run, and that is what we watched.`,
+        agentNotes: outcome.skipped,
       },
     };
     check.status = 'done';
@@ -244,8 +253,9 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     say('caution', check.problem);
   } finally {
     if (sandbox) {
+      const existed = sandbox.exists;
       destroyed = await sandbox.destroy().catch(() => false);
-      say('safe', destroyed ? 'Test space destroyed' : 'We could not confirm the test space was destroyed', undefined, { destroyed });
+      if (existed) say('safe', destroyed ? 'Test space destroyed' : 'We could not confirm the test space was destroyed', undefined, { destroyed });
     }
     await skill?.cleanup().catch(() => {});
     check.finishedAt = new Date().toISOString();
