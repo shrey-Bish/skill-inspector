@@ -77,7 +77,7 @@ export function StolenKeys({ attempt }: { attempt: OutboundAttempt }) {
         <div key={m.decoy} className="flex flex-col gap-1">
           <div className="text-[13px] font-medium">{m.label}</div>
           <div className="font-mono text-[13px] leading-5 [word-break:break-all]">
-            <mark className="si-mark rounded bg-[#f2c46b] px-1.5 py-0.5 text-ink [word-break:break-all]">{m.encoding === 'dns' ? 'hidden in the website name' : m.text.slice(0, 80)}</mark>
+            <mark className="si-mark rounded bg-[#f2c46b] px-1.5 py-0.5 text-ink [word-break:break-all]">{m.text.includes(attempt.host) || m.encoding === 'dns' ? 'Hidden inside the website name below' : m.text.slice(0, 80)}</mark>
           </div>
         </div>
       ))}

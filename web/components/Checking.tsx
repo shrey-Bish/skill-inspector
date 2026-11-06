@@ -13,7 +13,7 @@ const STEPS: { key: NonNullable<FeedEvent['step']>; label: string }[] = [
 ];
 
 // Setup chatter and raw commands stay behind "Show every step".
-const QUIET = /^(Fetching the skill|Drafting an ordinary|Gave |The AI helper got the task|Grading from|Agent ran: )/;
+const QUIET = /^(Fetching the skill|Drafting an ordinary|Gave |The AI helper got the task|Grading from|The agent wants to run|Agent ran: )/;
 
 const LINE_GAP = 1200;
 const FAST_GAP = 450; // A long backlog still has to catch up with the run.
@@ -312,7 +312,7 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
         )}
         <VultrBadge />
       </Nav>
-      <main className="mx-auto box-border flex w-full max-w-[1280px] flex-col gap-5 px-4 pb-10 pt-5 md:px-10 md:pt-8">
+      <main className="mx-auto box-border flex w-full max-w-[1480px] flex-col gap-5 px-4 pb-10 pt-5 md:px-10 md:pt-8">
         {review && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-[#c9d7f2] bg-tint px-5 py-3">
             <span className="text-[15px] text-accent-hover">This test has finished. Here&apos;s what happened.</span>

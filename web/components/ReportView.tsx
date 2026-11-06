@@ -185,7 +185,7 @@ export function ReportView({ check, onBack }: { check: CheckView; onBack: () => 
   return (
     <div className="flex min-h-dvh flex-col">
       <Nav />
-      <main className="mx-auto box-border flex w-full max-w-[1280px] flex-col gap-5 px-4 pb-12 pt-5 md:px-10 md:pt-8">
+      <main className="mx-auto box-border flex w-full max-w-[1480px] flex-col gap-5 px-4 pb-12 pt-5 md:px-10 md:pt-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
           <div className="flex min-w-0 flex-col gap-0.5">
             <div className="flex flex-wrap items-center gap-2 md:gap-3">
