@@ -70,7 +70,7 @@ export function CaughtPanel({ attempt, onContinue }: { attempt: OutboundAttempt;
   return (
     <div data-si-caught className="si-panel flex min-w-[280px] flex-[0_1_340px] flex-col overflow-hidden rounded-2xl border-[1.5px] border-red bg-white shadow-[0_10px_28px_rgba(200,55,45,0.12)]">
       <div className="flex items-center justify-between gap-3 bg-red-tint px-[18px] py-3.5">
-        <div className="text-[15px] font-semibold text-red-text">Caught request</div>
+        <div className="text-[15px] font-semibold text-red-text">What we stopped</div>
         <span className="flex-none rounded-full bg-red px-2.5 py-[3px] text-xs font-semibold text-white">Stopped</span>
       </div>
       <div className="flex flex-1 flex-col gap-4 p-[18px]">

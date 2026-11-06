@@ -96,7 +96,7 @@ export function GlassBox({ beat, host, files, taken, carried, now }: {
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <div className="text-[11.5px] font-semibold text-[#4a6390]">Decoy keys we planted</div>
+            <div className="text-[11.5px] font-semibold text-[#4a6390]">Fake keys that look like the real logins on your computer</div>
             <div className="flex flex-wrap gap-1.5">
               {DECOYS.map((d) => (taken.has(d.id) ? (
                 <div key={d.id} className="si-fade flex items-center gap-1.5 rounded-lg border-[1.5px] border-[#d9a441] bg-amber-tint px-2.5 py-1 text-[12.5px] font-semibold text-[#7a4a00]">

@@ -13,6 +13,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DATA = process.env.SI_DATA_DIR ?? join(ROOT, 'data/checks');
 const PORT = Number(process.env.PORT ?? 4000);
 const MAX_QUEUE = 8;
+// Each test space is sealed off from the others, so a few can run side by side.
+const MAX_RUNNING = Number(process.env.SI_MAX_RUNNING ?? 3);
 const PER_IP_PER_HOUR = 20;
 const DECISION_WAIT_MS = 30_000;
 // Every check spends inference credit, so a public link gets an overall ceiling too.
@@ -24,7 +26,7 @@ const checks = new Map<string, Check>();
 const streams = new Map<string, Set<ServerResponse>>();
 const decisions = new Map<string, (allow: boolean) => void>();
 const queue: string[] = [];
-let running: string | null = null;
+const running = new Set<string>();
 const recentByIp = new Map<string, number[]>();
 let startedToday: number[] = [];
 
@@ -66,11 +68,13 @@ function publicCheck(c: Check): Omit<Check, 'feed'> & { position?: number } {
 }
 
 async function pump(): Promise<void> {
-  if (running || queue.length === 0) return;
+  if (running.size >= MAX_RUNNING || queue.length === 0) return;
   const id = queue.shift()!;
   const check = checks.get(id);
   if (!check) return void pump();
-  running = id;
+  running.add(id);
+  for (const waiting of queue) broadcast(waiting, 'status', publicCheck(checks.get(waiting)!));
+  void pump();
   try {
     await runCheck(check, {
       emit: (event) => {
@@ -107,7 +111,7 @@ async function pump(): Promise<void> {
     broadcast(id, 'end', { status: check.status });
     for (const res of streams.get(id) ?? []) res.end();
     streams.delete(id);
-    running = null;
+    running.delete(id);
     void pump();
   }
 }
@@ -150,7 +154,7 @@ const server = createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && url.pathname === '/api/health') {
-      return send(res, 200, { ok: true, running: Boolean(running), queued: queue.length });
+      return send(res, 200, { ok: true, running: running.size, queued: queue.length });
     }
     if (req.method === 'GET' && url.pathname === '/api/samples') {
       return send(res, 200, { samples: await listSamples() });

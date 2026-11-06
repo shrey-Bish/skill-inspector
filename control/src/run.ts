@@ -190,7 +190,7 @@ export async function runCheck(check: Check, hooks: RunHooks): Promise<void> {
     const sb = sandbox;
     kernel = sb.kernel;
     check.sandboxStarted = true;
-    say('safe', `Test space ready: its own kernel, ${LIMITS.memory.replace(/G$/, ' GB')} of memory, no real internet, decoy keys in place`, 'setup', { kernel: sb.kernel });
+    say('safe', "Test space ready. It's sealed off from the internet, with fake keys planted inside.", 'setup', { kernel: sb.kernel });
 
     // 2. Load into the agent.
     say('info', `Loaded ${skill.name} into a test agent`, 'load');

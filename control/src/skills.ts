@@ -63,7 +63,10 @@ function capture(cmd: string, args: string[], timeoutMs = 120_000): Promise<stri
 
 // A picked skill is often re-fetched moments later, so the last few repos are kept briefly.
 const archives = new Map<string, { file: string; at: number }>();
+const inFlight = new Map<string, Promise<string>>();
 const ARCHIVE_TTL = 15 * 60_000;
+// Checks run side by side, so keep more copies than can be in use at once.
+const ARCHIVES_KEPT = 5;
 
 async function pruneArchives(keep: number): Promise<void> {
   const rows = [...archives.entries()].sort((x, y) => y[1].at - x[1].at);
@@ -79,10 +82,21 @@ async function pruneArchives(keep: number): Promise<void> {
 async function fetchArchive(input: Extract<ParsedInput, { kind: 'github' }>): Promise<string> {
   const ref = input.ref ?? 'HEAD';
   const key = `${input.owner}/${input.repo}@${ref}`.toLowerCase();
-  await pruneArchives(3);
   const cached = archives.get(key);
-  if (cached) return cached.file;
+  if (cached && Date.now() - cached.at < ARCHIVE_TTL) {
+    cached.at = Date.now(); // Still in use, so pruning must leave it alone.
+    return cached.file;
+  }
+  // Two people checking the same repo share one download.
+  const pending = inFlight.get(key);
+  if (pending) return pending;
+  const download = downloadArchive(input, ref, key).finally(() => inFlight.delete(key));
+  inFlight.set(key, download);
+  return download;
+}
 
+async function downloadArchive(input: Extract<ParsedInput, { kind: 'github' }>, ref: string, key: string): Promise<string> {
+  await pruneArchives(ARCHIVES_KEPT - 1);
   const url = `https://codeload.github.com/${input.owner}/${input.repo}/tar.gz/${ref}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(120_000) });
   if (res.status === 404) throw new SkillError("We couldn't find that repo. Check the name, and make sure it's public.");

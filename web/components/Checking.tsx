@@ -193,8 +193,8 @@ function Steps({ lines, finished }: { lines: FeedEvent[]; finished: boolean }) {
 const DOT: Record<string, string> = { info: 'bg-[#b9bec4]', safe: 'bg-green', caution: 'bg-amber', stop: 'bg-red' };
 const COLOR: Record<string, string> = { info: 'text-muted', safe: 'text-muted', caution: 'text-ink', stop: 'text-red-text' };
 
-function Feed({ lines, confirm, answer, start, finished, awaitProof }: {
-  lines: FeedEvent[]; confirm: string | null; answer: (allow: boolean) => void; start: number; finished: boolean; awaitProof: boolean;
+function Feed({ lines, confirm, answer, start, finished, awaitProof, plain }: {
+  lines: FeedEvent[]; confirm: string | null; answer: (allow: boolean) => void; start: number; finished: boolean; awaitProof: boolean; plain: boolean;
 }) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -217,7 +217,7 @@ function Feed({ lines, confirm, answer, start, finished, awaitProof }: {
               <span className={`mt-[7px] size-2 ${l.level === 'caution' ? 'rotate-45' : l.level === 'stop' ? 'rounded-[1px]' : 'rounded-full'} ${DOT[l.level]}`} />
               <span className={`si-line-text flex flex-col gap-2 [overflow-wrap:anywhere] ${stopped ? 'font-semibold' : ''}`}>
                 {command
-                  ? <><span>Agent ran a command</span><code title={command} className="line-clamp-2 rounded-md bg-[#f4f5f2] px-2 py-1 font-mono text-[12px] leading-[18px] text-body [word-break:break-all]">{command}</code></>
+                  ? <><span>Agent ran a command</span>{!plain && <code title={command} className="line-clamp-2 rounded-md bg-[#f4f5f2] px-2 py-1 font-mono text-[12px] leading-[18px] text-body [word-break:break-all]">{command}</code>}</>
                   : l.text}
                 {i === firstDecoy && <span className="rounded-lg bg-amber-tint px-2.5 py-[7px] text-[13.5px] font-normal leading-[19px] text-[#5b3b00]">Decoy key: fake, planted by us, unlocks nothing.</span>}
               </span>
@@ -239,7 +239,7 @@ function Feed({ lines, confirm, answer, start, finished, awaitProof }: {
         {!finished && !confirm && (
           <div className="grid grid-cols-[36px_8px_minmax(0,1fr)] gap-3 py-[7px] text-[15px] leading-[22px] text-faint">
             <span /><span className="mt-[7px] box-border size-2 rounded-full border-[1.5px] border-[#b9bec4]" />
-            <span>{lines.at(-1)?.step === 'grade' ? 'Writing your report…' : awaitProof ? 'Held here while you read the catch' : 'Working…'}</span>
+            <span>{lines.at(-1)?.step === 'grade' ? 'Writing your report…' : awaitProof ? 'Paused so you can read this' : 'Working…'}</span>
           </div>
         )}
       </div>
@@ -337,7 +337,7 @@ export function Checking({ id, onDone, review = false }: { id: string; onDone: (
               : <div className="relative h-[470px] min-w-0 flex-[1_1_300px]"><div className="absolute inset-0"><GlassBox beat={beat} host={caught?.host} files={files} taken={taken} carried={carried} now={now} /></div></div>}
             {panel && caught && <CaughtPanel attempt={caught} onContinue={awaitProof && !recording ? continueRun : undefined} />}
           </div>
-          <Feed lines={lines} confirm={confirm} answer={answer} start={start} finished={finished} awaitProof={awaitProof} />
+          <Feed lines={lines} confirm={confirm} answer={answer} start={start} finished={finished} awaitProof={awaitProof} plain={plain} />
         </div>
       </main>
     </div>

@@ -170,7 +170,7 @@ export function deriveSignals(ev: Evidence, skillDir: string): Signal[] {
     signals.push({
       level: 'safe',
       title: 'Did its job and nothing else',
-      plain: 'It only touched the files it was given. It reached for no keys and sent nothing out.',
+      plain: 'It only touched the files it was given.',
     });
   }
   return signals;

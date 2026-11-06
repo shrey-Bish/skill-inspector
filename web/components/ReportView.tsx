@@ -289,7 +289,7 @@ export function CouldntCheck({ check }: { check: CheckView }) {
           <p className="text-[17px] leading-[26px] text-body [overflow-wrap:anywhere]">{check.problem}</p>
           <div className="flex flex-col gap-2.5 border-t border-line2 pt-5">
             <div className="text-[15px] font-semibold">What you can try</div>
-            <p className="text-base leading-6 text-muted">Check that the repo is public, and name one skill with <span className="font-mono text-sm">--skill</span> if it holds several.</p>
+            <p className="text-base leading-6 text-muted">Check that the repo is public. If the repo holds several skills, tell us which one.</p>
             <p className="text-base leading-6 text-muted">Run the check again. If it keeps happening, it may be on our side.</p>
           </div>
           <div className="flex flex-wrap gap-3 pt-1"><CheckAnother /></div>

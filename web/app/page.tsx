@@ -82,6 +82,7 @@ export default function Home() {
           <div className="flex flex-col gap-3 md:gap-3.5">
             <h1 className="text-[34px] font-semibold leading-10 tracking-[-0.02em] [text-wrap:balance] md:text-[52px] md:leading-[58px] md:tracking-[-0.025em]">Check a skill before you install it.</h1>
             <p className="text-base leading-6 text-muted [text-wrap:pretty] md:text-[19px] md:leading-[29px]">We load the skill into a real AI agent, give it an ordinary task, and show you what it actually did.</p>
+            <p className="text-[15px] leading-[22px] text-soft">A skill is a set of instructions that teaches an AI agent a new task.</p>
           </div>
 
           <form className="flex flex-col gap-2.5" onSubmit={(e) => { e.preventDefault(); if (input.trim() && !busy) void start(input); }}>
